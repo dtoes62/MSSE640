@@ -7,6 +7,10 @@ UI built with React and a REST API backend built with FastAPI.
 
 ---
 
+# Triangle Analyzer UI
+
+![Triangle Analyzer UI](docs/week1TriangleApp.png)
+
 ## Prerequisites
 
 | Tool | Version | Check |
