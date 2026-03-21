@@ -10,18 +10,23 @@ To build this program, I worked with Claude Code in an Ubuntu terminal and revie
 
 ## Table With Example Test Data
 
-The inputs into the tests are sidelengths in integer format, tied to expected outcomes. Examples of inputs to these functions are listed below:
+The inputs into the tests are sidelengths in integer format, tied to expected outcomes. A summary of the inputs, test, and expected results are listed below:
 
-- 3,4,5
-- 0,4,5
-- -1,4,5
-- 3,0,5
-- 1,2,3
-- 1,1,10
-- 1,2,3
-- 3,3,3
-- 5,5,3
-- 3,5,5
+| Side A | Side B | Side C | Test(s)           | Expected Result                                                    |
+|--------|--------|--------|---------------------|------------------------------------------------------------------|
+| 3      | 4      | 5      | validate_triangle   | is True                                                          |
+| 0      | 4      | 5      | validate_triangle   | raises InvalidSideLengthError                                    |
+| -1     | 4      | 5      | validate_triangle   | raises InvalidSideLengthError                                    |
+| 3      | 0      | 5      | validate_triangle   | raises InvalidSideLengthError                                    |
+| 1      | 2      | 3      | validate_triangle   | raised NotATriangleError                                         |
+| 1      | 1      | 10     | validate_triangle   | raised NotATriangleError                                         |
+| 1      | 2      | 3      | validate_triangle   | raised NotATriangleError                                         |
+| 5      | 5      | 5      |TestClassifyTriangle | == "equalateral"                                                 |
+| 3      | 5      | 5      |TestClassifyTriangle | == "isosceles"                                                   |
+| 5      | 3      | 5      |TestClassifyTriangle | == "isosceles"                                                   |
+| 5      | 5      | 3      |TestClassifyTriangle | == "isosceles"                                                   |              
+| 3      | 4      | 5      |TestClassifyTriangle | == "scalene"                                                     |
+| 3      | 4      | 5      | tests validate_triangle & classify_triangle in all permutations | "True" and "scalene" |
 
 
   ## Unit Tests
