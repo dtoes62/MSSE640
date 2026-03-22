@@ -6,7 +6,7 @@ Triangle Analyzer is a full stack web application that I wrote with the assitanc
 
 ## Details Of The Program
 
-To build this program, I worked with Claude Code in an Ubuntu terminal and reviewed and edited the code in Microsoft Visual Studio Code. After setting [Claude Code Up](https://claude.ai/public/artifacts/03a4aa0c-67b2-427f-838e-63770900bf1d) and creating a folder for it to work in, I explained that I wanted to plan and build an application and the pertinent details of my application from the assignment. I chose a python backend and react UI for the application, and asked for suggestions aside from flask as the interface layer. It recommended FAST API. It asked me a numbe of additional questions, such as whether or not I wanted to create custom exception classes for error handling (I did). I also asked that we write unit tests as well as integration tests. We discussed that the UI should be responsive and mobile friendly. I let Claude know that I would like to provide additional creative detail regarding the UI later. 
+To build this program, I worked with Claude Code in an Ubuntu terminal and reviewed and edited the code in Microsoft Visual Studio Code. After setting [Claude Code up](https://claude.ai/public/artifacts/03a4aa0c-67b2-427f-838e-63770900bf1d) and creating a folder for it to work in, I explained that I wanted to plan and build an application and the pertinent details of my application from the assignment. I chose a python backend and react UI for the application, and asked for suggestions aside from flask as the interface layer. It recommended FAST API. It asked me a number of additional questions, such as whether or not I wanted to create custom exception classes for error handling (I did). I also asked Claude to write both unit tests and integration tests. We discussed that the UI should be responsive and mobile friendly. I let Claude know that I would like to provide additional creative detail regarding the UI later in the process. 
 
 ## Table With Example Test Data
 
@@ -31,7 +31,7 @@ The inputs into the tests are sidelengths in integer format, tied to expected ou
 
   ## Unit Tests
 
-  The backend unit tests can be found in "test_triangle.py". They take side lengths in float format as inputs. They test that classes and functions in the code have the expected output given specific sidelength inputs. The first 7 test validation functions. There are also 5 tests to ensure that the function "classify_triangle" produces the correct value output. The last two test that given all permutations of the set of sides 3, 4 and 5, the expected scalene output is generated.
+  The backend unit tests can be found in "test_triangle.py". They take side lengths in float format as inputs. They test that classes and functions in the code have the expected output given specific sidelength inputs. The first 7 test the triangle validation function. The next 5 test to that the function "classify_triangle" produces the expected value output. The last two test that given all permutations of the set of sides 3, 4, and 5, the expected scalene output is generated.
   
 I can't claim to have chosen these tests, as Claude wrote them based on the information I provided. But you can see that they comprehensively cover the backend logic of the application. 
 
@@ -43,13 +43,15 @@ There were no unit test bugs, but the integration tests (not discussed above) ca
   - All 29 tests passed
 
 ## Problems
-I sheepishly admitted on the call, after the work involved in the setup, the backend was completely written and tested within 15 minutes. I did ask a number of questions to better understand Claude's chosen paths and reviewed the code to ensure I understood it in VS Code.
+After the work involved in the setup, the backend was completely written and tested within 30 minutes. I did ask a number of questions to better understand Claude's chosen paths and reviewed the tests in VS Code to ensure I understood them.
 
 ## Screenshots
 
-Below is the output from running test_triangle.py with pytest:
+Below is the output from running all test files with pytest, as well as the a review of the code coverage. In reviewing this, I learned that Claude made an unusual decision of adding the test files in the same directory as the code being tested. This causes the test files themselves to be included in the line count, which would create an upward bias in the percentage coverage if that was of concern. 
 
 ![Evidence](BackendTestRunEvidence.png)
+
+![Evidence](BackendCoverageCheck.png)
 
 
 
