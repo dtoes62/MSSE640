@@ -1,0 +1,317 @@
+{
+  "info": {
+    "name": "Triangle GraphQL API",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "description": "Collection for the Week3Project Triangle GraphQL API.\n\n**Setup:**\n1. Import this collection and the companion environment file.\n2. Run the **Get JWT Token** request first — it auto-saves the token to `{{jwt_token}}`.\n3. All GraphQL requests will then authenticate automatically.\n\n**Default credentials:** username `admin` / password `secret`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Get JWT Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.access_token) {",
+                  "    pm.environment.set('jwt_token', json.access_token);",
+                  "    console.log('Token saved to environment variable jwt_token');",
+                  "} else {",
+                  "    console.error('No access_token in response:', JSON.stringify(json));",
+                  "}",
+                  "",
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response contains access_token', () => pm.expect(json).to.have.property('access_token'));",
+                  "pm.test('token_type is bearer', () => pm.expect(json.token_type).to.eql('bearer'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "{{username}}", "type": "text" },
+                { "key": "password", "value": "{{password}}", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/token",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "token"]
+            },
+            "description": "Obtain a JWT Bearer token.\n\nSubmits username and password (form-encoded). On success the **Tests** script automatically saves `access_token` to the `jwt_token` environment variable — subsequent GraphQL requests will use it without any manual copy-paste."
+          }
+        }
+      ]
+    },
+    {
+      "name": "GraphQL Queries",
+      "item": [
+        {
+          "name": "AllValidations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "var json = pm.response.json();",
+                  "pm.test('No GraphQL errors', () => pm.expect(json).to.not.have.property('errors'));",
+                  "pm.test('allValidations field present', () => pm.expect(json.data).to.have.property('allValidations'));",
+                  "var result = json.data.allValidations;",
+                  "pm.test('valid field is boolean', () => pm.expect(result.valid).to.be.a('boolean'));",
+                  "pm.test('message field is present', () => pm.expect(result.message).to.be.a('string'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationName\": \"AllValidations\",\n  \"query\": \"query AllValidations($a: Float!, $b: Float!, $c: Float!) {\\n  allValidations(a: $a, b: $b, c: $c) {\\n    valid\\n    triangleType\\n    message\\n  }\\n}\",\n  \"variables\": {\n    \"a\": 3,\n    \"b\": 4,\n    \"c\": 5\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            },
+            "description": "Runs a full triangle analysis — validates the sides and classifies the triangle.\n\nReturns:\n- `valid` (bool) — whether the sides form a valid triangle\n- `triangleType` (string | null) — 'equilateral', 'isosceles', or 'scalene'\n- `message` — human-readable result or error description\n\nEdit the `variables` block to test different side combinations."
+          }
+        },
+        {
+          "name": "TriangleType",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "var json = pm.response.json();",
+                  "pm.test('No GraphQL errors', () => pm.expect(json).to.not.have.property('errors'));",
+                  "pm.test('triangleType field present', () => pm.expect(json.data).to.have.property('triangleType'));",
+                  "pm.test('message field is present', () => pm.expect(json.data.triangleType.message).to.be.a('string'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationName\": \"TriangleType\",\n  \"query\": \"query TriangleType($a: Float!, $b: Float!, $c: Float!) {\\n  triangleType(a: $a, b: $b, c: $c) {\\n    triangleType\\n    message\\n  }\\n}\",\n  \"variables\": {\n    \"a\": 5,\n    \"b\": 5,\n    \"c\": 5\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            },
+            "description": "Returns only the triangle type for valid input.\n\nReturns:\n- `triangleType` (string | null) — 'equilateral', 'isosceles', or 'scalene'; null if the sides are invalid\n- `message` — human-readable result or error description\n\nDefault variables demonstrate an equilateral triangle (5, 5, 5)."
+          }
+        },
+        {
+          "name": "ValidateTriangle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "var json = pm.response.json();",
+                  "pm.test('No GraphQL errors', () => pm.expect(json).to.not.have.property('errors'));",
+                  "pm.test('validateTriangle field present', () => pm.expect(json.data).to.have.property('validateTriangle'));",
+                  "pm.test('valid field is boolean', () => pm.expect(json.data.validateTriangle.valid).to.be.a('boolean'));",
+                  "pm.test('message field is present', () => pm.expect(json.data.validateTriangle.message).to.be.a('string'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationName\": \"ValidateTriangle\",\n  \"query\": \"query ValidateTriangle($a: Float!, $b: Float!, $c: Float!) {\\n  validateTriangle(a: $a, b: $b, c: $c) {\\n    valid\\n    message\\n  }\\n}\",\n  \"variables\": {\n    \"a\": 3,\n    \"b\": 4,\n    \"c\": 5\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            },
+            "description": "Returns only the boolean validity result — does not classify.\n\nReturns:\n- `valid` (bool) — true if the three sides satisfy the triangle inequality and all sides are > 0\n- `message` — human-readable result or error description\n\nDefault variables (3, 4, 5) demonstrate a valid right triangle."
+          }
+        },
+        {
+          "name": "ClassifyTriangle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "var json = pm.response.json();",
+                  "pm.test('No GraphQL errors', () => pm.expect(json).to.not.have.property('errors'));",
+                  "pm.test('classifyTriangle field present', () => pm.expect(json.data).to.have.property('classifyTriangle'));",
+                  "pm.test('message field is present', () => pm.expect(json.data.classifyTriangle.message).to.be.a('string'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationName\": \"ClassifyTriangle\",\n  \"query\": \"query ClassifyTriangle($a: Float!, $b: Float!, $c: Float!) {\\n  classifyTriangle(a: $a, b: $b, c: $c) {\\n    classification\\n    message\\n  }\\n}\",\n  \"variables\": {\n    \"a\": 5,\n    \"b\": 5,\n    \"c\": 8\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            },
+            "description": "Returns only the triangle classification.\n\nReturns:\n- `classification` (string | null) — 'equilateral', 'isosceles', or 'scalene'; null if the sides are invalid\n- `message` — human-readable result or error description\n\nDefault variables (5, 5, 8) demonstrate an isosceles triangle."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "AllValidations — Invalid Side (zero)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "var result = pm.response.json().data.allValidations;",
+                  "pm.test('valid is false', () => pm.expect(result.valid).to.be.false);",
+                  "pm.test('triangleType is null', () => pm.expect(result.triangleType).to.be.null);",
+                  "pm.test('error message present', () => pm.expect(result.message).to.be.a('string').and.not.empty);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationName\": \"AllValidations\",\n  \"query\": \"query AllValidations($a: Float!, $b: Float!, $c: Float!) {\\n  allValidations(a: $a, b: $b, c: $c) {\\n    valid\\n    triangleType\\n    message\\n  }\\n}\",\n  \"variables\": {\n    \"a\": 0,\n    \"b\": 4,\n    \"c\": 5\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            },
+            "description": "Demonstrates the error response when a side is zero. Expects `valid: false` and a non-null error `message`."
+          }
+        },
+        {
+          "name": "AllValidations — Impossible Triangle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "var result = pm.response.json().data.allValidations;",
+                  "pm.test('valid is false', () => pm.expect(result.valid).to.be.false);",
+                  "pm.test('triangleType is null', () => pm.expect(result.triangleType).to.be.null);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationName\": \"AllValidations\",\n  \"query\": \"query AllValidations($a: Float!, $b: Float!, $c: Float!) {\\n  allValidations(a: $a, b: $b, c: $c) {\\n    valid\\n    triangleType\\n    message\\n  }\\n}\",\n  \"variables\": {\n    \"a\": 1,\n    \"b\": 2,\n    \"c\": 100\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            },
+            "description": "Demonstrates the triangle inequality failure (1 + 2 ≤ 100). Expects `valid: false`."
+          }
+        },
+        {
+          "name": "Unauthenticated Request — Expect 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('detail field present', () => pm.expect(pm.response.json()).to.have.property('detail'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationName\": \"AllValidations\",\n  \"query\": \"query AllValidations($a: Float!, $b: Float!, $c: Float!) {\\n  allValidations(a: $a, b: $b, c: $c) {\\n    valid\\n    message\\n  }\\n}\",\n  \"variables\": {\n    \"a\": 3,\n    \"b\": 4,\n    \"c\": 5\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            },
+            "description": "Sends a GraphQL request with no Authorization header. Expects HTTP 401 — verifies auth enforcement is working."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

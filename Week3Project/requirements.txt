@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+strawberry-graphql[fastapi]
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt==4.0.1
+httpx
+pytest
+pytest-cov
+pytest-asyncio
+anyio[trio]
