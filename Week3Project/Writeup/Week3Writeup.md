@@ -445,7 +445,7 @@ HTTP forms the backbone of web communication through a stateless request–respo
 
 ## SQLite DB capture of all call and response details
 
-![SQLite DB capture of call and response details](Screenshot 2026-03-29 132703.png)
+![SQLite DB capture of call and response details](SQLiteAuditLog.png)
 
 ## API Features & Postman Video Demo
 
@@ -454,4 +454,5 @@ HTTP forms the backbone of web communication through a stateless request–respo
  - Postman collection with 8 post transactions including "Get JWT Token" 
  - GraphiQL with query explorer
 
-![API Postman GraphiQL Demo](APIPostmantGraphiQL.mp4)
+> **Video demo:** `APIPostmantGraphiQL.mp4` is included in this folder (tracked via Git LFS).
+> To embed it here, upload it via the GitHub web editor (drag and drop into a comment or issue), copy the generated URL, and replace this note with `![Demo](url)`.
