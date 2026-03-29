@@ -454,5 +454,4 @@ HTTP forms the backbone of web communication through a stateless request–respo
  - Postman collection with 8 post transactions including "Get JWT Token" 
  - GraphiQL with query explorer
 
-> **Video demo:** `APIPostmantGraphiQL.mp4` is included in this folder (tracked via Git LFS).
-> To embed it here, upload it via the GitHub web editor (drag and drop into a comment or issue), copy the generated URL, and replace this note with `![Demo](url)`.
+[▶ Watch API Demo — Postman + GraphiQL](https://regis365-my.sharepoint.com/:v:/g/personal/edick_regis_edu/IQBySalczQAZSq5fohN3_HcYAXeaDw_RBkTNdKKqRYiyuZs?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&email=rgranier%40regis.edu&e=llXeXa)
