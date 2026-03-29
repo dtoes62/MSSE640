@@ -445,13 +445,35 @@ HTTP forms the backbone of web communication through a stateless request–respo
 
 ## SQLite DB capture of all call and response details
 
+All key API interaction details are captured to SQLite DB table entitled "audit_log". 
+
 ![SQLite DB capture of call and response details](SQLiteAuditLog.png)
 
 ## API Features & Postman Video Demo
 
  - JWT secured with 30min token expiration
- - https secured with http 2 enabled 
+ - https secured with http2 enabled 
  - Postman collection with 8 post transactions including "Get JWT Token" 
  - GraphiQL with query explorer
+ - Queries to return results of triangle functions from week 1 and API interaction history from the audit_table database
 
-[▶ Watch API Demo — Postman + GraphiQL](https://regis365-my.sharepoint.com/:v:/g/personal/edick_regis_edu/IQBySalczQAZSq5fohN3_HcYARFp7PwMOxWSaBgfr4FVel8?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=OAb997)
+[▶ Watch API Demo — Postman + GraphiQL Triangle Functions](https://regis365-my.sharepoint.com/:v:/g/personal/edick_regis_edu/IQBySalczQAZSq5fohN3_HcYARFp7PwMOxWSaBgfr4FVel8?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=OAb997)
+
+[▶ Watch API Demo — Postman + GraphiQL API For API Audit Table](https://regis365-my.sharepoint.com/:v:/g/personal/edick_regis_edu/IQD_NtnHGpLGTIMXMGDtWX2aAXnIlwtdGqel8QcS7Vs_hY8?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=55bwKl)
+
+#Conclusions & Recommendations 
+
+This project allowed me to work with a number of ubiquitous technologies in depth that I had interacted with in the past but never wrote from scratch or had the opportunity to make designs decisions about. These include:
+
+ - creating an http post/GraphQL API
+ - creating a Postman collection. Past experience was utilizing individual saved queries before shifting to Bruno
+ - creating a swagger UI (only supports token generation call thus not featured)
+ - Creating and enabling a JWT security pattern and updating the Postman and GraphiQL files accordingly
+ - Shifting from http to https/http2 and updating the Postman and GraphiQL files accordingly
+ - Creating a SQLite DB to record all interaction data. This kind of thing is great for a Product Owner like myself to have, because it's often difficult to inventory users of certain APIs 
+ - Utilizing Claude Code from the most recent version of VS Code. It's very well integrated and makes interactions clearer and easier - for instance the last interaction remains in a bubble at the top of the chat while the claude output scrolls on below. Also, the chatbox makes it easier to edit the prompt in line. 
+  - Installing and using a VS Code extension "Database Client" for database querying and updating. It has some nice features not available in my current default work tooling. Hopefully it's available
+
+  Overall I found this project to be a really productive active learning opportunity. In hindsight, a REST API would have better aligned with the project because GraphQL doesn't support any interaction type but POST. But I was still able to tick most of the assignment boxes. I considered trying end-to-end encryption, and would like to attempt that in the future. 
+
+

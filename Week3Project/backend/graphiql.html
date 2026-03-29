@@ -178,12 +178,65 @@ function renderGraphiQL() {
 
   const explorerPlugin = GraphiQLPluginExplorer.explorerPlugin();
 
+  const defaultTabs = [
+    {
+      title: 'AllValidations',
+      query: [
+        'query AllValidations($a: Float!, $b: Float!, $c: Float!) {',
+        '  allValidations(a: $a, b: $b, c: $c) {',
+        '    valid',
+        '    triangleType',
+        '    message',
+        '  }',
+        '}',
+      ].join('\n'),
+      variables: JSON.stringify({ a: 3, b: 4, c: 5 }, null, 2),
+    },
+    {
+      title: 'DBadmin90D',
+      query: [
+        'query DBadmin90D {',
+        '  dbAdmin90d {',
+        '    id',
+        '    requestId',
+        '    callerId',
+        '    datetimeReceived',
+        '    queryName',
+        '    inputData',
+        '    outputData',
+        '    durationMs',
+        '  }',
+        '}',
+      ].join('\n'),
+      variables: '{}',
+    },
+    {
+      title: 'DBanonymous90D',
+      query: [
+        'query DBanonymous90D {',
+        '  dbAnonymous90d {',
+        '    id',
+        '    requestId',
+        '    callerId',
+        '    datetimeReceived',
+        '    queryName',
+        '    inputData',
+        '    outputData',
+        '    durationMs',
+        '  }',
+        '}',
+      ].join('\n'),
+      variables: '{}',
+    },
+  ];
+
   ReactDOM.createRoot(document.getElementById('graphiql')).render(
     React.createElement(GraphiQL, {
       fetcher: graphQLFetcher,
       plugins: [explorerPlugin],
       defaultEditorToolsVisibility: 'variables',
       isHeadersEditorEnabled: false,   // headers are managed automatically
+      defaultTabs: defaultTabs,
     })
   );
 }

@@ -5,9 +5,26 @@ Uses only the stdlib sqlite3 module; no ORM dependency required.
 """
 import sqlite3
 from dataclasses import dataclass
-from typing import Optional
+from datetime import datetime, timedelta, timezone
+from typing import List, Optional
 
 import config
+
+
+@dataclass
+class AuditLogRow:
+    """A single row returned from an audit log query."""
+    id: int
+    request_id: str
+    caller_id: str
+    datetime_received: str
+    query_name: Optional[str]
+    input_data: Optional[str]
+    output_data: Optional[str]
+    request_headers: str
+    request_body: str
+    response_body: str
+    duration_ms: float
 
 
 @dataclass
@@ -61,6 +78,26 @@ def init_db() -> None:
         con.commit()
     finally:
         con.close()
+
+
+def get_audit_logs_by_caller(caller_id: str, days: int = 90) -> List[AuditLogRow]:
+    """Return audit rows for *caller_id* received within the last *days* days, newest first."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    query = """
+        SELECT id, request_id, caller_id, datetime_received, query_name,
+               input_data, output_data, request_headers, request_body,
+               response_body, duration_ms
+        FROM audit_log
+        WHERE caller_id = ?
+          AND datetime_received >= ?
+        ORDER BY datetime_received DESC
+    """
+    con = _connect()
+    try:
+        rows = con.execute(query, (caller_id, cutoff)).fetchall()
+    finally:
+        con.close()
+    return [AuditLogRow(*row) for row in rows]
 
 
 def log_request(record: AuditRecord) -> None:

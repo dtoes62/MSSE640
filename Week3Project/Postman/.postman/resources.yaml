@@ -11,7 +11,6 @@ localResources:
 # Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
 cloudResources:
   collections:
-    ..\postman\collections\Triangle GraphQL API: 53573585-e9510486-c954-48f9-a417-080c7a4a3822
-    ..\postman\collections\Triangle GraphQL API — Local: 53573585-ee286b18-d40c-41b0-b628-92bec4c3ec0e
+    ..\postman\collections\Triangle GraphQL API: 9c969a65-4caf-4747-8bf4-466edf088218
   environments:
     ..\postman\environments\Triangle GraphQL API.environment.yaml: 53573585-38f2f860-5fe5-42fa-a173-16b0fb67479f

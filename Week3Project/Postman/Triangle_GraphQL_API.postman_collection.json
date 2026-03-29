@@ -205,6 +205,83 @@
       ]
     },
     {
+      "name": "Audit Log Queries",
+      "item": [
+        {
+          "name": "DBadmin90D",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "var json = pm.response.json();",
+                  "pm.test('No GraphQL errors', () => pm.expect(json).to.not.have.property('errors'));",
+                  "pm.test('dbAdmin90d field present', () => pm.expect(json.data).to.have.property('dbAdmin90d'));",
+                  "pm.test('dbAdmin90d is an array', () => pm.expect(json.data.dbAdmin90d).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationName\": \"DBadmin90D\",\n  \"query\": \"query DBadmin90D {\\n  dbAdmin90d {\\n    id\\n    requestId\\n    callerId\\n    datetimeReceived\\n    queryName\\n    inputData\\n    outputData\\n    durationMs\\n  }\\n}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            },
+            "description": "Returns all audit_log rows where caller_id = 'admin' and datetime_received is within the past 90 days, ordered newest first.\n\nThe heavy fields (requestHeaders, requestBody, responseBody) are omitted from the default selection — add them to the query if needed."
+          }
+        },
+        {
+          "name": "DBanonymous90D",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "var json = pm.response.json();",
+                  "pm.test('No GraphQL errors', () => pm.expect(json).to.not.have.property('errors'));",
+                  "pm.test('dbAnonymous90d field present', () => pm.expect(json.data).to.have.property('dbAnonymous90d'));",
+                  "pm.test('dbAnonymous90d is an array', () => pm.expect(json.data.dbAnonymous90d).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationName\": \"DBanonymous90D\",\n  \"query\": \"query DBanonymous90D {\\n  dbAnonymous90d {\\n    id\\n    requestId\\n    callerId\\n    datetimeReceived\\n    queryName\\n    inputData\\n    outputData\\n    durationMs\\n  }\\n}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/graphql",
+              "host": ["{{base_url}}"],
+              "path": ["graphql"]
+            },
+            "description": "Returns all audit_log rows where caller_id = 'anonymous' and datetime_received is within the past 90 days, ordered newest first.\n\nAnonymous rows are requests that arrived without a valid JWT token (401 responses). This query is useful for spotting unauthorized access attempts."
+          }
+        }
+      ]
+    },
+    {
       "name": "Error Cases",
       "item": [
         {

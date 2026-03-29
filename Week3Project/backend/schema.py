@@ -12,11 +12,12 @@ All queries accept Float arguments and never raise — errors are returned as
 structured result fields rather than GraphQL errors so clients can always
 inspect a typed response.
 """
-from typing import Optional
+from typing import List, Optional
 
 import strawberry
 
 import bridge
+import database
 
 
 # ---------------------------------------------------------------------------
@@ -50,6 +51,22 @@ class ClassifyResult:
     """Returns only the classification string (or None on error) plus a message."""
     classification: Optional[str]
     message: str
+
+
+@strawberry.type
+class AuditLogEntry:
+    """A single row from the audit_log table."""
+    id: int
+    request_id: str
+    caller_id: str
+    datetime_received: str
+    query_name: Optional[str]
+    input_data: Optional[str]
+    output_data: Optional[str]
+    request_headers: str
+    request_body: str
+    response_body: str
+    duration_ms: float
 
 
 # ---------------------------------------------------------------------------
@@ -121,3 +138,23 @@ class Query:
             )
         except (bridge.InvalidSideLengthError, bridge.NotATriangleError) as exc:
             return ClassifyResult(classification=None, message=str(exc))
+
+    @strawberry.field(
+        description=(
+            "Return all audit_log rows where caller_id = 'admin' "
+            "and datetime_received is within the past 90 days, newest first."
+        )
+    )
+    def db_admin90d(self) -> List[AuditLogEntry]:
+        rows = database.get_audit_logs_by_caller("admin", days=90)
+        return [AuditLogEntry(**row.__dict__) for row in rows]
+
+    @strawberry.field(
+        description=(
+            "Return all audit_log rows where caller_id = 'anonymous' "
+            "and datetime_received is within the past 90 days, newest first."
+        )
+    )
+    def db_anonymous90d(self) -> List[AuditLogEntry]:
+        rows = database.get_audit_logs_by_caller("anonymous", days=90)
+        return [AuditLogEntry(**row.__dict__) for row in rows]
