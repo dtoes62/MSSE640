@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pactl info:*)",
+      "Bash(mkdir -p /mnt/c/Users/eadic/MSSE640/Week1Project/backend/tests)",
+      "Bash(touch /mnt/c/Users/eadic/MSSE640/Week1Project/backend/tests/__init__.py)",
+      "Bash(python -m pytest tests/test_triangle.py -v)",
+      "Bash(python3 -m pytest tests/test_triangle.py -v)",
+      "Bash(pip3 install:*)",
+      "Bash(python3 -m ensurepip --upgrade)",
+      "Bash(python3 -m pip install pytest fastapi httpx uvicorn)",
+      "Bash(conda --version)",
+      "Read(//mnt/c/Users/eadic/anaconda3/**)",
+      "Bash(ls /mnt/c/Users/eadic/anaconda3/Scripts/conda*)",
+      "Bash(/mnt/c/Users/eadic/anaconda3/python.exe --version)",
+      "Bash(/mnt/c/Users/eadic/anaconda3/python.exe -m pip install pytest fastapi httpx uvicorn)",
+      "Bash(sudo apt-get:*)",
+      "Bash(python3 -m pytest tests/test_api.py -v)",
+      "Bash(python3 -m pytest tests/ -v)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(chmod:*)"
+    ]
+  }
+}

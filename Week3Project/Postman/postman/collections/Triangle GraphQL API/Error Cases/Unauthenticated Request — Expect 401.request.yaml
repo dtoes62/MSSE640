@@ -1,0 +1,28 @@
+$kind: http-request
+description: Sends a GraphQL request with no Authorization header. Expects HTTP
+  401 — verifies auth enforcement is working.
+url: "{{base_url}}/graphql"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: >-
+    {
+      "operationName": "AllValidations",
+      "query": "query AllValidations($a: Float!, $b: Float!, $c: Float!) {\n  allValidations(a: $a, b: $b, c: $c) {\n    valid\n    message\n  }\n}",
+      "variables": {
+        "a": 3,
+        "b": 4,
+        "c": 5
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test('Status is 401', () => pm.response.to.have.status(401));
+
+      pm.test('detail field present', () =>
+      pm.expect(pm.response.json()).to.have.property('detail'));
+    language: text/javascript
+order: 3000

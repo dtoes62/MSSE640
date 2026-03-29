@@ -1,0 +1,15 @@
+name: Triangle GraphQL API
+values:
+  - key: base_url
+    value: ""
+    enabled: true
+  - key: username
+    value: ""
+    enabled: true
+  - key: password
+    value: ""
+    enabled: true
+  - key: jwt_token
+    value: ""
+    enabled: true
+color: 240

@@ -24,7 +24,7 @@ export function TriangleAnimation({ a, b, c, result }) {
     const update = () => {
       if (wrapRef.current) {
         const w = wrapRef.current.parentElement?.offsetWidth ?? CANVAS_SIZE
-        setScale(Math.min(1, (w - 16) / CANVAS_SIZE))
+        setScale((w - 16) / CANVAS_SIZE)
       }
     }
     update()
@@ -59,7 +59,9 @@ export function TriangleAnimation({ a, b, c, result }) {
   }, [lockedCount])
 
   return (
-    <div ref={wrapRef} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+    // Outer wrapper collapses to the visual height after scaling so no dead
+    // space appears below the canvas on small screens.
+    <div ref={wrapRef} style={{ width: '100%', display: 'flex', justifyContent: 'center', height: CANVAS_SIZE * scale }}>
       <div
         style={{
           position:        'relative',

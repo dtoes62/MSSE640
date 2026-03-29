@@ -1,0 +1,16 @@
+$kind: collection
+description: >-
+  Collection for the Week3Project Triangle GraphQL API.
+
+
+  **Setup:**
+
+  1. Import this collection and the companion environment file.
+
+  2. Run the **Get JWT Token** request first — it auto-saves the token to
+  `{{jwt_token}}`.
+
+  3. All GraphQL requests will then authenticate automatically.
+
+
+  **Default credentials:** username `admin` / password `secret`

@@ -7,7 +7,6 @@ export function TriangleForm({ values, onChange, loading }) {
 
   return (
     <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-6 backdrop-blur">
-      <h2 className="mb-1 text-center text-2xl font-bold text-white">Triangle Analyzer</h2>
       <p className="mb-6 text-center text-sm text-slate-400">
         Enter three side lengths — the result animates automatically.
       </p>

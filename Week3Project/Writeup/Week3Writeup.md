@@ -6,9 +6,7 @@ HTTP (Hypertext Transfer Protocol) is the foundational communication protocol us
 
 ### Clients
 
-A client is any system that sends HTTP requests.
-
-Common examples:
+A client is any system that sends HTTP requests. Common examples include:
 
 - Web browsers (Chrome, Edge, Safari)
 - Mobile apps
@@ -442,3 +440,18 @@ Use cases: music apps, recommendation engines.
 ## Summary
 
 HTTP forms the backbone of web communication through a stateless request–response model involving clients and servers. APIs extend this model by enabling systems to interact and share data efficiently. Open APIs promote innovation by allowing developers to build on shared platforms, while technologies like CORS and authentication mechanisms ensure secure and controlled data exchange. Together, these technologies define the foundation of modern web and cloud-based applications.
+
+# Project Demo  
+
+## SQLite DB capture of all call and response details
+
+![SQLite DB capture of call and response details](BackendTestRunEvidence.png)
+
+## API Features & Postman Video Demo
+
+ - JWT secured with 30min token expiration
+ - https secured with http 2 enabled 
+ - Postman collection with 8 post transactions including "Get JWT Token" 
+ - GraphiQL with query explorer
+
+![API Postman GraphiQL Demo](APIPostmanGraphiQL.mp4)

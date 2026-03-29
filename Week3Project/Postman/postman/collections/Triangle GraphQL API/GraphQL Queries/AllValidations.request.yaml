@@ -1,0 +1,55 @@
+$kind: http-request
+description: >-
+  Runs a full triangle analysis — validates the sides and classifies the
+  triangle.
+
+
+  Returns:
+
+  - `valid` (bool) — whether the sides form a valid triangle
+
+  - `triangleType` (string | null) — 'equilateral', 'isosceles', or 'scalene'
+
+  - `message` — human-readable result or error description
+
+
+  Edit the `variables` block to test different side combinations.
+url: "{{base_url}}/graphql"
+method: POST
+headers:
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+body:
+  type: json
+  content: >-
+    {
+      "operationName": "AllValidations",
+      "query": "query AllValidations($a: Float!, $b: Float!, $c: Float!) {\n  allValidations(a: $a, b: $b, c: $c) {\n    valid\n    triangleType\n    message\n  }\n}",
+      "variables": {
+        "a": 3,
+        "b": 4,
+        "c": 5
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+
+      var json = pm.response.json();
+
+      pm.test('No GraphQL errors', () =>
+      pm.expect(json).to.not.have.property('errors'));
+
+      pm.test('allValidations field present', () =>
+      pm.expect(json.data).to.have.property('allValidations'));
+
+      var result = json.data.allValidations;
+
+      pm.test('valid field is boolean', () =>
+      pm.expect(result.valid).to.be.a('boolean'));
+
+      pm.test('message field is present', () =>
+      pm.expect(result.message).to.be.a('string'));
+    language: text/javascript
+order: 1000

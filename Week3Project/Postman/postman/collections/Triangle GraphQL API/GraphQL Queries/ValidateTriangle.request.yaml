@@ -1,0 +1,51 @@
+$kind: http-request
+description: >-
+  Returns only the boolean validity result — does not classify.
+
+
+  Returns:
+
+  - `valid` (bool) — true if the three sides satisfy the triangle inequality and
+  all sides are > 0
+
+  - `message` — human-readable result or error description
+
+
+  Default variables (3, 4, 5) demonstrate a valid right triangle.
+url: "{{base_url}}/graphql"
+method: POST
+headers:
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+body:
+  type: json
+  content: >-
+    {
+      "operationName": "ValidateTriangle",
+      "query": "query ValidateTriangle($a: Float!, $b: Float!, $c: Float!) {\n  validateTriangle(a: $a, b: $b, c: $c) {\n    valid\n    message\n  }\n}",
+      "variables": {
+        "a": 3,
+        "b": 4,
+        "c": 5
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+
+      var json = pm.response.json();
+
+      pm.test('No GraphQL errors', () =>
+      pm.expect(json).to.not.have.property('errors'));
+
+      pm.test('validateTriangle field present', () =>
+      pm.expect(json.data).to.have.property('validateTriangle'));
+
+      pm.test('valid field is boolean', () =>
+      pm.expect(json.data.validateTriangle.valid).to.be.a('boolean'));
+
+      pm.test('message field is present', () =>
+      pm.expect(json.data.validateTriangle.message).to.be.a('string'));
+    language: text/javascript
+order: 3000

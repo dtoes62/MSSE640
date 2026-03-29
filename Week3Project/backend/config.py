@@ -16,6 +16,11 @@ ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 # --- SQLite audit database ---
 SQLITE_DB_PATH: str = os.getenv("SQLITE_DB_PATH", "audit.db")
 
+# --- TLS (HTTPS / HTTP2) ---
+_CERTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "certs"))
+TLS_CERT_FILE: str = os.getenv("TLS_CERT_FILE", os.path.join(_CERTS_DIR, "cert.pem"))
+TLS_KEY_FILE: str  = os.getenv("TLS_KEY_FILE",  os.path.join(_CERTS_DIR, "key.pem"))
+
 # --- Demo user store (username → bcrypt hash of password) ---
 # Hash generated from: passlib.context.CryptContext(schemes=["bcrypt"]).hash("secret")
 # Password for "admin" is "secret" — change this before any real deployment.

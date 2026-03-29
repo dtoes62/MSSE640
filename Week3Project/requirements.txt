@@ -1,5 +1,6 @@
 fastapi
 uvicorn[standard]
+h2
 strawberry-graphql[fastapi]
 python-jose[cryptography]
 passlib[bcrypt]

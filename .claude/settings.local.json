@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(pip show:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m pytest)",
+      "Bash(winget install:*)",
+      "Bash(python -c \":*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(openssl version:*)",
+      "Bash(mkdir -p /c/Users/eadic/MSSE640/Week3Project/certs)",
+      "Bash(openssl req:*)",
+      "Bash(MSYS_NO_PATHCONV=1 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj \"/C=US/ST=Local/L=Local/O=MSSE640/CN=localhost\")",
+      "Bash(curl -sk https://localhost:8443/docs)",
+      "Bash(python -c \"import strawberry; import os; print\\(os.path.dirname\\(strawberry.__file__\\)\\)\")",
+      "Bash(xargs grep:*)"
+    ]
+  }
+}

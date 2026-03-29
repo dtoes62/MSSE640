@@ -1,0 +1,17 @@
+# Use this workspace to collaborate
+workspace:
+  id: b444b91e-936c-4b9d-86c4-d4a9ed57c0e7
+
+localResources:
+  collections:
+    - ..\Triangle_GraphQL_API.postman_collection.json
+  environments:
+    - ..\Triangle_GraphQL_API.postman_environment.json
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+cloudResources:
+  collections:
+    ..\postman\collections\Triangle GraphQL API: 53573585-e9510486-c954-48f9-a417-080c7a4a3822
+    ..\postman\collections\Triangle GraphQL API — Local: 53573585-ee286b18-d40c-41b0-b628-92bec4c3ec0e
+  environments:
+    ..\postman\environments\Triangle GraphQL API.environment.yaml: 53573585-38f2f860-5fe5-42fa-a173-16b0fb67479f

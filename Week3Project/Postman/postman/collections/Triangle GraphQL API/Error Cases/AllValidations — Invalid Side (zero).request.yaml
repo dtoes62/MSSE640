@@ -1,0 +1,36 @@
+$kind: http-request
+description: "Demonstrates the error response when a side is zero. Expects
+  `valid: false` and a non-null error `message`."
+url: "{{base_url}}/graphql"
+method: POST
+headers:
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+body:
+  type: json
+  content: >-
+    {
+      "operationName": "AllValidations",
+      "query": "query AllValidations($a: Float!, $b: Float!, $c: Float!) {\n  allValidations(a: $a, b: $b, c: $c) {\n    valid\n    triangleType\n    message\n  }\n}",
+      "variables": {
+        "a": 0,
+        "b": 4,
+        "c": 5
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+
+      var result = pm.response.json().data.allValidations;
+
+      pm.test('valid is false', () => pm.expect(result.valid).to.be.false);
+
+      pm.test('triangleType is null', () =>
+      pm.expect(result.triangleType).to.be.null);
+
+      pm.test('error message present', () =>
+      pm.expect(result.message).to.be.a('string').and.not.empty);
+    language: text/javascript
+order: 1000

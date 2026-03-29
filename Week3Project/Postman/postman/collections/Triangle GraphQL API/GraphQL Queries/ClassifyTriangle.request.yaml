@@ -1,0 +1,48 @@
+$kind: http-request
+description: >-
+  Returns only the triangle classification.
+
+
+  Returns:
+
+  - `classification` (string | null) — 'equilateral', 'isosceles', or 'scalene';
+  null if the sides are invalid
+
+  - `message` — human-readable result or error description
+
+
+  Default variables (5, 5, 8) demonstrate an isosceles triangle.
+url: "{{base_url}}/graphql"
+method: POST
+headers:
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+body:
+  type: json
+  content: >-
+    {
+      "operationName": "ClassifyTriangle",
+      "query": "query ClassifyTriangle($a: Float!, $b: Float!, $c: Float!) {\n  classifyTriangle(a: $a, b: $b, c: $c) {\n    classification\n    message\n  }\n}",
+      "variables": {
+        "a": 5,
+        "b": 5,
+        "c": 8
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+
+      var json = pm.response.json();
+
+      pm.test('No GraphQL errors', () =>
+      pm.expect(json).to.not.have.property('errors'));
+
+      pm.test('classifyTriangle field present', () =>
+      pm.expect(json.data).to.have.property('classifyTriangle'));
+
+      pm.test('message field is present', () =>
+      pm.expect(json.data.classifyTriangle.message).to.be.a('string'));
+    language: text/javascript
+order: 4000

@@ -1,0 +1,37 @@
+$kind: http-request
+description: >-
+  Obtain a JWT Bearer token.
+
+
+  Submits username and password (form-encoded). On success the **Tests** script
+  automatically saves `access_token` to the `jwt_token` environment variable —
+  subsequent GraphQL requests will use it without any manual copy-paste.
+url: "{{base_url}}/auth/token"
+method: POST
+body:
+  type: urlencoded
+  content:
+    username: "{{username}}"
+    password: "{{password}}"
+scripts:
+  - type: afterResponse
+    code: >-
+      var json = pm.response.json();
+
+      if (json.access_token) {
+          pm.environment.set('jwt_token', json.access_token);
+          console.log('Token saved to environment variable jwt_token');
+      } else {
+          console.error('No access_token in response:', JSON.stringify(json));
+      }
+
+
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+
+      pm.test('Response contains access_token', () =>
+      pm.expect(json).to.have.property('access_token'));
+
+      pm.test('token_type is bearer', () =>
+      pm.expect(json.token_type).to.eql('bearer'));
+    language: text/javascript
+order: 1000

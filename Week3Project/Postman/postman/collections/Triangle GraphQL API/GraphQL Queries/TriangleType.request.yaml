@@ -1,0 +1,48 @@
+$kind: http-request
+description: >-
+  Returns only the triangle type for valid input.
+
+
+  Returns:
+
+  - `triangleType` (string | null) — 'equilateral', 'isosceles', or 'scalene';
+  null if the sides are invalid
+
+  - `message` — human-readable result or error description
+
+
+  Default variables demonstrate an equilateral triangle (5, 5, 5).
+url: "{{base_url}}/graphql"
+method: POST
+headers:
+  Authorization: Bearer {{jwt_token}}
+  Content-Type: application/json
+body:
+  type: json
+  content: >-
+    {
+      "operationName": "TriangleType",
+      "query": "query TriangleType($a: Float!, $b: Float!, $c: Float!) {\n  triangleType(a: $a, b: $b, c: $c) {\n    triangleType\n    message\n  }\n}",
+      "variables": {
+        "a": 5,
+        "b": 5,
+        "c": 5
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+
+      var json = pm.response.json();
+
+      pm.test('No GraphQL errors', () =>
+      pm.expect(json).to.not.have.property('errors'));
+
+      pm.test('triangleType field present', () =>
+      pm.expect(json.data).to.have.property('triangleType'));
+
+      pm.test('message field is present', () =>
+      pm.expect(json.data.triangleType.message).to.be.a('string'));
+    language: text/javascript
+order: 2000
