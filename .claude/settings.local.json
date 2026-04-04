@@ -17,7 +17,22 @@
       "Bash(MSYS_NO_PATHCONV=1 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj \"/C=US/ST=Local/L=Local/O=MSSE640/CN=localhost\")",
       "Bash(curl -sk https://localhost:8443/docs)",
       "Bash(python -c \"import strawberry; import os; print\\(os.path.dirname\\(strawberry.__file__\\)\\)\")",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(git lfs:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git mv:*)",
+      "Bash(ffmpeg -version)",
+      "Bash(python -c \"import schema; print\\(''schema OK''\\); import database; print\\(''database OK''\\)\")",
+      "Bash(python -m pytest --tb=short -q)",
+      "Bash(taskkill //F //IM python.exe //T)",
+      "Bash(curl -sk https://localhost:8443/auth/token -d \"username=admin&password=secret\")",
+      "Bash(python -m json.tool)",
+      "Bash(python -c \"import menu; import rules; import pairwise; print\\('All modules import OK'\\)\")",
+      "Bash(python -c ':*)",
+      "Bash(streamlit run:*)",
+      "Bash(curl -s http://localhost:8501)",
+      "Bash(grep -n \"\\\\\\\\\\\\\\\\'\" /c/Users/eadic/MSSE640/VibeCode1/app.py)",
+      "Bash(grep \"\\\\\\\\\\\\\\\\'\")"
     ]
   }
 }
