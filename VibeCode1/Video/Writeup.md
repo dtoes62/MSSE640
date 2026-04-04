@@ -245,7 +245,7 @@ These are invalid or warning orders — one or more rules fire.
 
 ### Demo Video
 
-[▶ Watch App Demo — Break the Barista Game Mode](https://regis365-my.sharepoint.com/:v:/g/personal/edick_regis_edu/IQBySalczQAZSq5fohN3_HcYARFp7PwMOxWSaBgfr4FVel8?e=9danYm)
+[▶ Watch App Demo — Break the Barista Game Mode](https://regis365-my.sharepoint.com/:v:/g/personal/edick_regis_edu/IQBarfa-sMvcQaiZqEpuL__NAZJn8Zc55DzEmnt1pBcYLog?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=XtUiCX)
 
 ---
 
