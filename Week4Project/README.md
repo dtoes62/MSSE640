@@ -1,4 +1,4 @@
-# Project 2: Performance Testing with JMeter
+# Project 3: Performance Testing with JMeter
 
 **Course:** MSSE 640  
 **Student:** Evan Dick  
