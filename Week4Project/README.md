@@ -3,13 +3,13 @@
 **Course:** MSSE 640  
 **Student:** Evan D  
 **Date:** April 2026  
-**GitHub Repository (RouteApp):** [dtoes62/RouteApp](https://github.com/dtoes62/RouteApp) *(Private — Professor Grainer has read access)*
+**GitHub Repository (RouteApp):** [dtoes62/RouteApp](https://github.com/dtoes62/RouteApp) *(Private — Professor Grainer has been granted read access)*
 
 ---
 
 ## Introduction
 
-This project explores performance testing concepts and applies them to a real-world full-stack web application called **RouteApp** — a route optimization and planning tool built for home healthcare nurses to optimize patient visit routes from their calendars. RouteApp is built with Next.js 14, PostgreSQL (Neon), and integrates with the Google Maps, Google Calendar, and Microsoft Outlook APIs.
+This project explores performance testing concepts and applies them to a real-world full-stack web application called **RouteApp** — a route optimization and planning tool built for home healthcare nurses to optimize patient visit routes from their calendars. RouteApp is built with Next.js 14, PostgreSQL (Neon), and integrates with the Google Maps and Google Calendar APIs.
 
 The application is deployed at: **https://route-app-one.vercel.app**
 
@@ -56,7 +56,7 @@ Threads
        (60s)     (5 loops × 50 users)
 ```
 
-> **Screenshot placeholder:** Insert JMeter Thread Group configuration and View Results Tree for Load Test here.
+![JMeter Test Plan with Thread Group](LoadTestResultsTree.png)
 
 ---
 
@@ -82,7 +82,7 @@ Threads
        (60s)
 ```
 
-> **Screenshot placeholder:** Insert JMeter Thread Group configuration and View Results Tree for Endurance Test here.
+![EnduranceTestResultsTree](EnduranceTestResultsTree.png)
 
 ---
 
@@ -111,7 +111,7 @@ Threads
        (300s)
 ```
 
-> **Screenshot placeholder:** Insert JMeter Thread Group configuration and View Results Tree for Stress Test here.
+![StressResultsTree](StressResultsTree.png)
 
 ---
 
@@ -195,7 +195,7 @@ Other available config elements (not used in this plan but relevant):
 
 Each Thread Group in the RouteApp plan has its own View Results Tree and Summariser. When run via GitHub Actions (`jmeter -n`), the Summariser outputs live statistics to the CI log, and the full HTML report is generated and uploaded as a build artifact.
 
-> **Screenshot placeholder:** Insert View Results Tree during/after test run showing green (pass) results and the JSON response body from /api/health.
+
 
 ---
 
@@ -258,7 +258,7 @@ jmeter -n -t jmeter/routeapp-tests.jmx -l results.jtl -e -o report \
 
 File → Open → select `jmeter/routeapp-tests.jmx`. The Test Plan tree on the left shows all four Thread Groups.
 
-> **Screenshot placeholder:** JMeter GUI with routeapp-tests.jmx loaded, showing the Test Plan tree.
+![JMeter Test Plan with Thread Group](JmeterThreadGroups.png)
 
 **Step 2 — Thread Group: Demo Endurance Test**
 
@@ -268,7 +268,7 @@ Select the `"Demo Endurance Test - 5 Min (Assignment Screenshots)"` Thread Group
 - Duration: **300 seconds** (5 minutes)
 - Scheduler: **enabled**
 
-> **Screenshot placeholder:** Thread Group panel with the above settings visible.
+![JMeter Test Plan - Endurance Group](EnduranceThreadGroup.png)
 
 **Step 3 — HTTP Request Sampler**
 
@@ -279,14 +279,14 @@ Expand the Thread Group and select the HTTP Request Sampler. Configuration:
 - Connect Timeout: **5000ms**
 - Response Timeout: **10000ms**
 
-> **Screenshot placeholder:** HTTP Request Sampler panel showing the above configuration.
+![JMeter Test Plan -HTTP Header](HTTPHeader.png)
 
 **Step 4 — HTTP Header Manager**
 
 Select Thread Group → Add → Config Elements → HTTP Header Manager. Headers added:
 - `Accept: application/json`
 
-> **Screenshot placeholder:** HTTP Header Manager panel with the Accept header.
+![JMeter Test Plan -HTTP Header](HTTPHeader.png)
 
 **Step 5 — View Results Tree**
 
@@ -295,7 +295,7 @@ Select Thread Group → Add → Listeners → View Results Tree. Run the test (g
 - Red sampler label = failure
 - Response body tab shows `{"status":"ok","db":"ok",...}`
 
-> **Screenshot placeholder:** View Results Tree during test run showing green results and response body.
+![Endurance - Results Tree](EnduranceResultsTree.png)
 
 ---
 
@@ -308,7 +308,11 @@ Select the `"Load Test - Peak Load (50 Users)"` Thread Group:
 
 Follow the same steps as above (HTTP Request Sampler, HTTP Header Manager, View Results Tree).
 
-> **Screenshot placeholders:** Thread Group panel, HTTP Request Sampler, HTTP Header Manager, View Results Tree with 50-user load results.
+![Load Test - Thread Group](LoadTestThreadGroup.png)
+![Load Test - HTTP Request Sampler](LoadTestHTTP.png)
+![Load Test - HTTP Header Manager](LoadTestHTTPHeader.png)
+![Load Test - Results Tree](LoadTestResultsTree.png)
+
 
 ---
 
@@ -318,7 +322,7 @@ Follow the same steps as above (HTTP Request Sampler, HTTP Header Manager, View 
 
 This project revealed that performance testing is as much about **environment design** as it is about running load generators. The central architectural decision — using Railway (persistent server) for JMeter targets rather than Vercel (serverless) — was essential to producing clean, meaningful measurements. Serverless cold starts and function timeout limits would have introduced platform-level constraints that masquerade as application performance problems.
 
-Integrating JMeter into a **GitHub Actions CI/CD pipeline** transformed performance testing from a one-time exercise into a continuous quality gate. Every commit to `main` is now automatically tested against the Railway environment before reaching production on Vercel. A commit that causes response time regressions will fail the JMeter step and never reach users.
+Integrating JMeter into a **GitHub Actions CI/CD pipeline** transformed performance testing from a one-time exercise into a continuous quality gate. Every commit to `main` was automatically tested against the Railway environment before reaching production on Vercel. A commit that causes response time regressions will fail the JMeter step and never reach users.
 
 The project also demonstrated that real-world deployment involves significant operational complexity beyond writing code: OAuth redirect URI management, database migration coordination across environments, environment variable propagation across three platforms (GitHub, Railway, Vercel), and platform-level incidents (Railway's build time degradation on April 6, 2026) all affected the deployment timeline. This context is valuable for understanding why **DevOps practices** — infrastructure as code, automated testing, and observability — exist.
 
@@ -326,15 +330,11 @@ The **Apdex score** provides a clean, stakeholder-friendly metric that translate
 
 ### Recommendations for Improving This Assignment
 
-1. **Provide a sample target application.** Students spend considerable time standing up a test target before they can use JMeter at all. A shared pre-deployed reference API would let students focus on the testing concepts rather than deployment troubleshooting.
+1. **Address authentication in JMeter.** Most real applications require authentication. The assignment would benefit from a section on handling session cookies, API keys, or token injection in JMeter — this is one of the most common real-world obstacles and is not covered in introductory JMeter documentation.
 
-2. **Address authentication in JMeter.** Most real applications require authentication. The assignment would benefit from a section on handling session cookies, API keys, or token injection in JMeter — this is one of the most common real-world obstacles and is not covered in introductory JMeter documentation.
+2. **Require CI integration as a deliverable.** Running JMeter manually teaches the tool, but integrating it into an automated pipeline is the industry standard. Adding this as a required step (not just extra credit) would significantly increase the practical value and career relevance of the assignment.
 
-3. **Require CI integration as a deliverable.** Running JMeter manually teaches the tool, but integrating it into an automated pipeline is the industry standard. Adding this as a required step (not just extra credit) would significantly increase the practical value and career relevance of the assignment.
-
-4. **Include Apdex threshold configuration.** Rather than defining Apdex only conceptually, having students configure thresholds in JMeter and observe how their application scores under each test type would make the metric tangible and testable.
-
-5. **Discuss platform choice in the rubric.** The choice of test environment (serverless vs. persistent server) has a profound impact on JMeter results. Prompting students to think critically about *where* they run tests — not just *how* — would deepen understanding of performance testing in cloud environments.
+3. **Discuss platform choice in the rubric.** The choice of test environment (serverless vs. persistent server) has a profound impact on JMeter results. Prompting students to think critically about *where* they run tests — not just *how* — would deepen understanding of performance testing in cloud environments.
 
 ---
 
