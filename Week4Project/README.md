@@ -1,7 +1,7 @@
 # Project 2: Performance Testing with JMeter
 
 **Course:** MSSE 640  
-**Student:** Evan D  
+**Student:** Evan Dick  
 **Date:** April 2026  
 **GitHub Repository (RouteApp):** [dtoes62/RouteApp](https://github.com/dtoes62/RouteApp) *(Private — Professor Grainer has been granted read access)*
 
@@ -11,8 +11,7 @@
 
 This project explores performance testing concepts and applies them to a real-world full-stack web application called **RouteApp** — a route optimization and planning tool built for home healthcare nurses to optimize patient visit routes from their calendars. RouteApp is built with Next.js 14, PostgreSQL (Neon), and integrates with the Google Maps and Google Calendar APIs.
 
-The application is deployed at: **https://route-app-one.vercel.app**
-  - A gmail account is required to try the app. Please send me a note to    whitelist you as a tester if desired
+The application is deployed at: **https://route-app-one.vercel.app** (A gmail account is required to try the app. Please send me a note to whitelist you as a tester if desired)
 
 A key challenge encountered during this project was designing a testing environment that produces *meaningful* performance results. RouteApp is hosted on **Vercel**, a serverless platform that imposes a 10-second function timeout and introduces cold start latency. Running JMeter directly against a serverless host would produce results that reflect platform constraints rather than application behavior. To address this, a split deployment architecture was adopted:
 
