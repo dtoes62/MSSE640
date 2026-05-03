@@ -7,6 +7,7 @@ the chaos of a coffee shop counter.
 Run with:  streamlit run app.py
 """
 
+import itertools
 import random
 from datetime import datetime
 
@@ -16,7 +17,7 @@ import pandas as pd
 from menu import (
     DRINK_BASES, DRINK_EMOJIS, MILK_TYPES, MILK_EMOJIS,
     FLAVOR_SYRUPS, SYRUP_EMOJIS, TOPPINGS, TOPPING_EMOJIS,
-    DRINK_RECIPES, PLANT_MILKS, CAFFEINE_PER_SHOT, HALL_OF_SHAME,
+    DRINK_RECIPES, PLANT_MILKS, ACID_SYRUPS, CAFFEINE_PER_SHOT, HALL_OF_SHAME,
 )
 from rules import (
     Order, evaluate_order, overall_severity,
@@ -25,6 +26,7 @@ from rules import (
 from pairwise import (
     generate_pairwise_cases, brute_force_count,
     pairwise_count, run_all_pairwise,
+    PAIRWISE_PARAMETERS,
 )
 
 # ── Page config ───────────────────────────────────────────────────────────────
@@ -35,166 +37,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
-
-# ── CSS — dark wood counter aesthetic ────────────────────────────────────────
-
-st.markdown("""
-<style>
-/* ── Overall background ── */
-.stApp { background-color: #1a0d05; }
-section[data-testid="stSidebar"] { background-color: #2c1810; }
-
-/* ── Station cards (columns get a wood-panel look) ── */
-div[data-testid="column"] > div:first-child {
-    background: linear-gradient(175deg, #3d1f0a 0%, #2a1406 100%);
-    border-radius: 14px;
-    border: 1px solid #5c3317;
-    border-top: 5px solid #8B4513;
-    padding: 16px 14px 20px 14px;
-    min-height: 480px;
-}
-
-/* ── Station headers ── */
-.station-header {
-    text-align: center;
-    margin-bottom: 10px;
-}
-.station-icon { font-size: 2.6em; display: block; text-align: center; }
-.station-title {
-    color: #f5c842;
-    font-weight: 700;
-    font-size: 1.05em;
-    text-align: center;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin: 4px 0 2px 0;
-}
-.step-badge {
-    display: inline-block;
-    background: #f5c842;
-    color: #1a0d05;
-    border-radius: 20px;
-    padding: 1px 10px;
-    font-size: 0.72em;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 0 auto 8px auto;
-}
-.station-desc {
-    color: #b89070;
-    font-size: 0.78em;
-    text-align: center;
-    margin-bottom: 10px;
-    font-style: italic;
-}
-
-/* ── Order ticket ── */
-.order-ticket {
-    background: #fffef0;
-    border: 2px dashed #8B4513;
-    border-radius: 10px;
-    padding: 18px 20px;
-    font-family: 'Courier New', monospace;
-    color: #1a0d05;
-    font-size: 0.9em;
-    line-height: 1.7;
-}
-.ticket-title {
-    font-size: 1.1em;
-    font-weight: 900;
-    text-align: center;
-    border-bottom: 2px solid #8B4513;
-    padding-bottom: 6px;
-    margin-bottom: 10px;
-    letter-spacing: 2px;
-}
-
-/* ── QA label pill ── */
-.qa-pill {
-    display: inline-block;
-    background: #003322;
-    color: #00ff88;
-    border: 1px solid #00ff88;
-    border-radius: 12px;
-    padding: 1px 8px;
-    font-family: monospace;
-    font-size: 0.75em;
-    font-weight: 700;
-    margin-right: 6px;
-    vertical-align: middle;
-}
-
-/* ── Status banner ── */
-.status-pass    { background:#134e13; color:#7eff7e; border-radius:10px; padding:14px 20px; font-size:1.2em; font-weight:700; }
-.status-warning { background:#4e3a00; color:#ffe066; border-radius:10px; padding:14px 20px; font-size:1.2em; font-weight:700; }
-.status-invalid { background:#4e0d0d; color:#ff6b6b; border-radius:10px; padding:14px 20px; font-size:1.2em; font-weight:700; }
-
-/* ── Hall of Shame card ── */
-.shame-card {
-    background: linear-gradient(135deg, #2c0a0a, #3d1505);
-    border: 1px solid #8B0000;
-    border-left: 5px solid #cc2200;
-    border-radius: 10px;
-    padding: 16px 18px;
-    margin-bottom: 16px;
-}
-.shame-name  { color: #ff6b6b; font-size: 1.1em; font-weight: 800; }
-.shame-sub   { color: #b89070; font-size: 0.82em; font-style: italic; }
-.shame-story { color: #e0c0a0; font-size: 0.88em; margin-top: 8px; line-height: 1.6; }
-
-/* ── BtB game ── */
-.btb-order-card {
-    background: linear-gradient(135deg, #0a1a2c, #051525);
-    border: 2px solid #1a6699;
-    border-radius: 12px;
-    padding: 20px;
-    font-family: 'Courier New', monospace;
-    color: #a0d4ff;
-    font-size: 0.95em;
-    line-height: 2;
-}
-.btb-title {
-    color: #66ccff;
-    font-size: 1.1em;
-    font-weight: 900;
-    letter-spacing: 1px;
-    border-bottom: 1px solid #1a6699;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
-}
-
-/* ── EC zone badges ── */
-.ec-valid   { background:#134e13; color:#7eff7e; border-radius:8px; padding:2px 10px; font-size:0.82em; font-weight:700; }
-.ec-warning { background:#4e3a00; color:#ffe066; border-radius:8px; padding:2px 10px; font-size:0.82em; font-weight:700; }
-.ec-invalid { background:#4e0d0d; color:#ff6b6b; border-radius:8px; padding:2px 10px; font-size:0.82em; font-weight:700; }
-
-/* ── BV zone bar labels ── */
-.bv-zone { font-family:monospace; font-size:0.82em; color:#b89070; }
-
-/* ── Streamlit overrides ── */
-/* Radio option labels — white and legible */
-.stRadio label { color: #ffffff !important; font-size: 1.05em !important; font-weight: 500 !important; }
-/* All widget labels (sliders, etc.) */
-label[data-testid="stWidgetLabel"] p { color: #ffffff !important; font-size: 1.05em !important; font-weight: 600 !important; }
-/* Caption text — brighter so it's readable on dark background */
-.stCaption p { color: #f0d0a8 !important; font-size: 0.9em !important; }
-/* QA Mode toggle — bigger label, white text */
-div[data-testid="stToggle"] { transform: scale(1.15); transform-origin: right center; }
-div[data-testid="stToggle"] label { color: #f5f0e8 !important; font-size: 1.1em !important; font-weight: 700 !important; }
-/* All markdown paragraph text — white throughout the app */
-div[data-testid="stMarkdownContainer"] p { color: #f5f0e8 !important; font-size: 1.0em; }
-/* Order ticket — dark text on white background */
-.order-ticket, .order-ticket b, .order-ticket * { color: #1a0d05 !important; }
-/* Dialog popout — dark background matching the counter theme */
-div[data-testid="stModal"] > div,
-div[role="dialog"] { background-color: #1e0f05 !important; color: #f5f0e8 !important; }
-div[role="dialog"] * { color: #f5f0e8; }
-h1, h2, h3 { color: #f5c842 !important; }
-.stTabs [data-baseweb="tab"] { color: #b89070; }
-.stTabs [aria-selected="true"] { color: #f5c842 !important; border-bottom: 2px solid #f5c842; }
-</style>
-""", unsafe_allow_html=True)
 
 # ── Session state ─────────────────────────────────────────────────────────────
 
@@ -211,6 +53,11 @@ def _init_state():
         "pw_results":       None,
         "shame_loaded":     None,
         "counter_reset_v":  0,
+        "cf_covered_rules": set(),
+        "df_var_seen": {
+            "drink_base": set(), "milk_type": set(), "syrup": set(),
+            "syrup_pumps": set(), "topping": set(), "temperature": set(), "shots": set(),
+        },
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -227,11 +74,8 @@ def severity_icon(s: Severity) -> str:
 def severity_coffee(s: Severity) -> str:
     return {"pass": "☕", "warning": "😬", "invalid": "💀"}[s.value]
 
-def severity_html_class(s: Severity) -> str:
-    return f"status-{s.value}"
-
 def qa_pill(test_type: TestType, rule_id: str) -> str:
-    return f'<span class="qa-pill">{test_type.value}</span><span class="qa-pill">Rule {rule_id}</span>'
+    return f"`{test_type.value}` `Rule {rule_id}`"
 
 def render_results(results, qa_mode: bool):
     """Render rule results as Streamlit expanders with optional QA labels."""
@@ -242,13 +86,13 @@ def render_results(results, qa_mode: bool):
         if r.severity == Severity.INVALID:
             with st.expander(f"❌ {r.title}", expanded=True):
                 if qa_mode:
-                    st.markdown(qa_pill(r.test_type, r.rule_id), unsafe_allow_html=True)
+                    st.markdown(qa_pill(r.test_type, r.rule_id))
                 st.markdown(f"**{r.description}**")
                 st.markdown(r.detail)
         elif r.severity == Severity.WARNING:
             with st.expander(f"⚠️ {r.title}", expanded=True):
                 if qa_mode:
-                    st.markdown(qa_pill(r.test_type, r.rule_id), unsafe_allow_html=True)
+                    st.markdown(qa_pill(r.test_type, r.rule_id))
                 st.markdown(f"**{r.description}**")
                 st.markdown(r.detail)
 
@@ -271,20 +115,196 @@ def log_order(order: Order, results, tag: str = ""):
         "Rules":      ", ".join(r.rule_id for r in results) or "—",
         "Techniques": ", ".join(sorted(set(r.test_type.value for r in results))) or "—",
     })
+    for r in results:
+        st.session_state.cf_covered_rules.add(r.rule_id)
+    _dv = st.session_state.df_var_seen
+    _dv["drink_base"].add(order.drink_base)
+    _dv["milk_type"].add(order.milk_type)
+    _dv["syrup"].add(order.syrup)
+    _dv["syrup_pumps"].add(order.syrup_pumps)
+    _dv["topping"].add(order.topping)
+    _dv["temperature"].add(order.temperature)
+    _dv["shots"].add(order.shots)
+
+
+# ── State transition helper ───────────────────────────────────────────────────
+
+# Maps each rule to the stations it involves (used to color state nodes).
+_ST_RULE_STATIONS = {
+    "R1":  {"milk", "syrup"},
+    "R2":  {"milk", "specs"},
+    "R3a": {"syrup"},
+    "R3b": {"syrup"},
+    "R4a": {"specs"},
+    "R4b": {"specs"},
+    "R5a": {"drink", "specs"},
+    "R5b": {"topping", "specs"},
+    "R6a": {"drink", "milk"},
+    "R6b": {"drink", "specs"},
+    "R6c": {"drink", "milk"},
+}
+
+
+def _sm_substates(drink_base, milk_type, syrup, syrup_pumps, topping, temperature, shots):
+    """
+    Classify each order parameter into a named substate and detect
+    conflicting state transitions.  Returns (substates_dict, invalid_list, warning_list).
+    """
+    caffeine = shots * CAFFEINE_PER_SHOT
+
+    # ── Drink substate ────────────────────────────────────────────────────────
+    if drink_base in ("Espresso", "Americano"):
+        d_sub, d_label = "no_milk_drink",  "No-milk family"
+    elif drink_base == "Affogato":
+        d_sub, d_label = "affogato",        "Ice-cream drink"
+    else:
+        d_sub, d_label = "milk_required",   "Milk-required drink"
+
+    # ── Milk substate ─────────────────────────────────────────────────────────
+    if milk_type == "None":
+        m_sub, m_label = "no_milk", "No milk selected"
+    elif milk_type in PLANT_MILKS:
+        m_sub, m_label = "plant",   "Plant-based milk"
+    else:
+        m_sub, m_label = "dairy",   "Dairy / Half&Half"
+
+    # ── Syrup substate ────────────────────────────────────────────────────────
+    if syrup == "None" or syrup_pumps == 0:
+        s_sub, s_label = "no_syrup",  "No syrup"
+    elif syrup in ACID_SYRUPS:
+        s_sub, s_label = "acid",      f"Acidic syrup ({syrup})"
+    elif syrup_pumps > 10:
+        s_sub, s_label = "overflow",  f"Pump overflow ({syrup_pumps} pumps)"
+    elif syrup_pumps > 6:
+        s_sub, s_label = "sweet",     f"Sweet zone ({syrup_pumps} pumps)"
+    else:
+        s_sub, s_label = "safe",      f"Normal ({syrup_pumps} pumps)"
+
+    # ── Topping substate ──────────────────────────────────────────────────────
+    if topping == "Foam":
+        t_sub, t_label = "foam", "Foam topping"
+    elif topping == "None":
+        t_sub, t_label = "none", "No topping"
+    else:
+        t_sub, t_label = "safe", "Standard topping"
+
+    # ── Specs substate ────────────────────────────────────────────────────────
+    if temperature < 50:
+        p_sub = "iced"
+    elif temperature > 180:
+        p_sub = "very_hot"
+    else:
+        p_sub = "normal"
+
+    substates = {
+        "drink":   (d_sub, d_label, drink_base),
+        "milk":    (m_sub, m_label, milk_type),
+        "syrup":   (s_sub, s_label, f"{syrup} ×{syrup_pumps}" if syrup != "None" else "None"),
+        "topping": (t_sub, t_label, topping),
+        "specs":   (p_sub, f"{temperature}°F / {shots} shots ({caffeine}mg)", f"{temperature}°F · {shots} shots"),
+    }
+
+    # ── Transition conflict detection ─────────────────────────────────────────
+    invalids = []
+    sm_warnings = []
+
+    if s_sub == "acid" and m_sub != "no_milk":
+        invalids.append({
+            "rule": "R1",
+            "transition": "MILK_ADDED → ACID_SYRUP_ADDED",
+            "stations":   "Milk Station → Syrup Rack",
+            "desc":       "Acid syrup combined with milk creates a curdling reaction.",
+            "st_case":    "Test: acid syrup + any milk → INVALID transition",
+        })
+    if m_sub == "plant" and p_sub == "very_hot":
+        sm_warnings.append({
+            "rule": "R2",
+            "transition": "PLANT_MILK_SET → TEMP_ABOVE_180",
+            "stations":   "Milk Station → Controls",
+            "desc":       "Plant milk + temperature > 180°F causes heat-shock separation.",
+            "st_case":    "Test: plant milk + temp > 180°F → WARNING transition",
+        })
+    if s_sub == "overflow":
+        invalids.append({
+            "rule": "R3b",
+            "transition": "NORMAL_PUMP → PUMP_OVERFLOW",
+            "stations":   "Syrup Rack",
+            "desc":       f"Pump count {syrup_pumps} crossed the 10→11 boundary into INVALID zone.",
+            "st_case":    "Test: pump count > 10 → INVALID, regardless of syrup type",
+        })
+    elif s_sub == "sweet":
+        sm_warnings.append({
+            "rule": "R3a",
+            "transition": "NORMAL_PUMP → SWEET_ZONE",
+            "stations":   "Syrup Rack",
+            "desc":       f"Pump count {syrup_pumps} crossed the 6→7 boundary into WARNING zone.",
+            "st_case":    "Test: pump count 7–10 → WARNING transition",
+        })
+    if caffeine > 600:
+        invalids.append({
+            "rule": "R4b",
+            "transition": "SAFE_CAFFEINE → CAFFEINE_CRITICAL",
+            "stations":   "Controls",
+            "desc":       f"{caffeine}mg exceeds the 600mg → INVALID threshold.",
+            "st_case":    "Test: shots causing >600mg caffeine → INVALID",
+        })
+    elif caffeine > 400:
+        sm_warnings.append({
+            "rule": "R4a",
+            "transition": "SAFE_CAFFEINE → CAFFEINE_WARNING",
+            "stations":   "Controls",
+            "desc":       f"{caffeine}mg is in the 401–600mg WARNING zone.",
+            "st_case":    "Test: shots causing 401–600mg caffeine → WARNING",
+        })
+    if d_sub == "affogato" and temperature > 140:
+        sm_warnings.append({
+            "rule": "R5a",
+            "transition": "AFFOGATO_DRINK → TEMP_ABOVE_140",
+            "stations":   "Espresso Machine → Controls",
+            "desc":       f"Affogato at {temperature}°F — espresso will incinerate the ice cream.",
+            "st_case":    "Test: Affogato + temp > 140°F → WARNING transition",
+        })
+    if t_sub == "foam" and p_sub == "iced":
+        sm_warnings.append({
+            "rule": "R5b",
+            "transition": "FOAM_TOPPING → ICED_TEMP",
+            "stations":   "Topping Bar → Controls",
+            "desc":       f"Foam topping + {temperature}°F — foam collapses on iced drinks.",
+            "st_case":    "Test: Foam + temp < 50°F → WARNING transition",
+        })
+    if d_sub == "milk_required" and m_sub == "no_milk":
+        invalids.append({
+            "rule": "R6a",
+            "transition": "MILK_REQUIRED_DRINK → NO_MILK_SELECTED",
+            "stations":   "Espresso Machine → Milk Station",
+            "desc":       f"{drink_base} requires milk; NO_MILK state is invalid for this drink.",
+            "st_case":    f"Test: {drink_base} + milk=None → INVALID transition",
+        })
+    if drink_base == "Flat White" and shots < 2:
+        sm_warnings.append({
+            "rule": "R6b",
+            "transition": "FLAT_WHITE_DRINK → INSUFFICIENT_SHOTS",
+            "stations":   "Espresso Machine → Controls",
+            "desc":       f"Flat White with {shots} shot(s) violates the 2-shot recipe minimum.",
+            "st_case":    "Test: Flat White + 1 shot → WARNING transition",
+        })
+    if d_sub == "no_milk_drink" and m_sub != "no_milk":
+        sm_warnings.append({
+            "rule": "R6c",
+            "transition": "NO_MILK_DRINK → MILK_ADDED",
+            "stations":   "Espresso Machine → Milk Station",
+            "desc":       f"{drink_base} is traditionally served without milk — non-canonical state.",
+            "st_case":    f"Test: {drink_base} + any milk → WARNING transition",
+        })
+
+    return substates, invalids, sm_warnings
 
 
 # ── Counter station widget ────────────────────────────────────────────────────
 
 def station_header(icon: str, title: str, step: str, desc: str):
-    st.markdown(
-        f'<div class="station-header">'
-        f'<span class="station-icon">{icon}</span>'
-        f'<div class="step-badge">{step}</div>'
-        f'<div class="station-title">{title}</div>'
-        f'<div class="station-desc">{desc}</div>'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown(f"### {icon} {title}")
+    st.caption(f"**{step}** — {desc}")
 
 
 # ── Order Results dialog (popout) ────────────────────────────────────────────
@@ -307,31 +327,31 @@ def show_order_results_dialog():
         "invalid": "❌  ORDER REJECTED — This drink cannot be made",
     }
     coffee = severity_coffee(sev)
-    st.markdown(
-        f'<div class="{severity_html_class(sev)}" style="font-size:1.3em; padding:16px 22px; margin-bottom:14px;">'
-        f'{coffee}&nbsp;&nbsp;{icons[sev.value]}</div>',
-        unsafe_allow_html=True,
-    )
+    msg = f"{coffee}  {icons[sev.value]}"
+    if sev == Severity.PASS:
+        st.success(msg)
+    elif sev == Severity.WARNING:
+        st.warning(msg)
+    else:
+        st.error(msg)
 
     # ── Two-column: ticket + rule results ─────────────────────────────────────
     d_left, d_right = st.columns([1, 2])
 
     with d_left:
         pumps_str = f" x{order.syrup_pumps}" if order.syrup != "None" else ""
-        st.markdown(f"""
-        <div class="order-ticket" style="font-size:1.0em;">
-        <div class="ticket-title">ORDER TICKET</div>
-        <b>Drink:</b> {DRINK_EMOJIS[order.drink_base]} {order.drink_base}<br>
-        <b>Milk:</b> {MILK_EMOJIS[order.milk_type]} {order.milk_type}<br>
-        <b>Syrup:</b> {SYRUP_EMOJIS[order.syrup]} {order.syrup}{pumps_str}<br>
-        <b>Topping:</b> {TOPPING_EMOJIS[order.topping]} {order.topping}<br>
-        <b>Temp:</b> {order.temperature}&deg;F<br>
-        <b>Shots:</b> {order.shots}<br>
-        <b>Caffeine:</b> {order.caffeine_mg}mg<br>
-        <hr style="border-color:#8B4513; margin:8px 0">
-        <b>Status:</b> {severity_icon(sev)} {sev.value.upper()}
-        </div>
-        """, unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("**ORDER TICKET**")
+            st.divider()
+            st.markdown(f"**Drink:** {DRINK_EMOJIS[order.drink_base]} {order.drink_base}")
+            st.markdown(f"**Milk:** {MILK_EMOJIS[order.milk_type]} {order.milk_type}")
+            st.markdown(f"**Syrup:** {SYRUP_EMOJIS[order.syrup]} {order.syrup}{pumps_str}")
+            st.markdown(f"**Topping:** {TOPPING_EMOJIS[order.topping]} {order.topping}")
+            st.markdown(f"**Temp:** {order.temperature}°F")
+            st.markdown(f"**Shots:** {order.shots}")
+            st.markdown(f"**Caffeine:** {order.caffeine_mg}mg")
+            st.divider()
+            st.markdown(f"**Status:** {severity_icon(sev)} {sev.value.upper()}")
 
     with d_right:
         st.markdown("#### What the rules say:")
@@ -404,119 +424,214 @@ with tab_counter:
     s1, s2, s3, s4, s5 = st.columns(5)
 
     with s1:
-        station_header("🔩", "Espresso Machine", "Step 1", "Choose your drink")
-        drink_base = st.radio(
-            "drink_base",
-            DRINK_BASES,
-            index=DRINK_BASES.index(shame_defaults.get("drink_base", "Latte")),
-            format_func=lambda d: f"{DRINK_EMOJIS[d]}  {d}",
-            label_visibility="collapsed",
-            key=f"c_drink_{v}",
-        )
-        recipe = DRINK_RECIPES[drink_base]
-        st.caption(f"_{recipe['description']}_")
-        if qa_mode:
-            st.caption(f"🔬 EC: drink_base in {{{', '.join(DRINK_BASES[:3])}...}}")
+        with st.container(border=True):
+            station_header("🔩", "Espresso Machine", "Step 1", "Choose your drink")
+            drink_base = st.radio(
+                "drink_base",
+                DRINK_BASES,
+                index=DRINK_BASES.index(shame_defaults.get("drink_base", "Latte")),
+                format_func=lambda d: f"{DRINK_EMOJIS[d]}  {d}",
+                label_visibility="collapsed",
+                key=f"c_drink_{v}",
+            )
+            recipe = DRINK_RECIPES[drink_base]
+            st.caption(f"_{recipe['description']}_")
+            if qa_mode:
+                st.caption(f"🔬 EC: drink_base in {{{', '.join(DRINK_BASES[:3])}...}}")
 
     with s2:
-        station_header("🥛", "Milk Station", "Step 2", "Choose your milk")
-        milk_type = st.radio(
-            "milk_type",
-            MILK_TYPES,
-            index=MILK_TYPES.index(shame_defaults.get("milk_type", "Whole Milk")),
-            format_func=lambda m: f"{MILK_EMOJIS[m]}  {m}",
-            label_visibility="collapsed",
-            key=f"c_milk_{v}",
-        )
-        if milk_type in PLANT_MILKS:
-            st.caption("🌱 Plant-based — heat sensitive above 180°F")
-        elif milk_type == "None":
-            st.caption("🚫 No milk selected")
-        if qa_mode:
-            ec_class = "Plant Milk (temp sensitive)" if milk_type in PLANT_MILKS else (
-                "No Milk (invalid for some drinks)" if milk_type == "None" else "Standard Milk"
+        with st.container(border=True):
+            station_header("🥛", "Milk Station", "Step 2", "Choose your milk")
+            milk_type = st.radio(
+                "milk_type",
+                MILK_TYPES,
+                index=MILK_TYPES.index(shame_defaults.get("milk_type", "Whole Milk")),
+                format_func=lambda m: f"{MILK_EMOJIS[m]}  {m}",
+                label_visibility="collapsed",
+                key=f"c_milk_{v}",
             )
-            st.caption(f"🔬 EC class: {ec_class}")
+            if milk_type in PLANT_MILKS:
+                st.caption("🌱 Plant-based — heat sensitive above 180°F")
+            elif milk_type == "None":
+                st.caption("🚫 No milk selected")
+            if qa_mode:
+                ec_class = "Plant Milk (temp sensitive)" if milk_type in PLANT_MILKS else (
+                    "No Milk (invalid for some drinks)" if milk_type == "None" else "Standard Milk"
+                )
+                st.caption(f"🔬 EC class: {ec_class}")
 
     with s3:
-        station_header("🍯", "Syrup Rack", "Step 3", "Add a flavor")
-        syrup_default = shame_defaults.get("syrup", "None")
-        syrup = st.radio(
-            "syrup",
-            FLAVOR_SYRUPS,
-            index=FLAVOR_SYRUPS.index(syrup_default),
-            format_func=lambda s: f"{SYRUP_EMOJIS[s]}  {s}",
-            label_visibility="collapsed",
-            key=f"c_syrup_{v}",
-        )
-        if syrup != "None":
-            pumps_default = shame_defaults.get("syrup_pumps", 3)
-            syrup_pumps = st.slider(
-                "Pumps", 0, 15,
-                value=int(pumps_default),
-                help="0-6 = Valid | 7-10 = Warning | >10 = Invalid",
-                key=f"c_pumps_{v}",
+        with st.container(border=True):
+            station_header("🍯", "Syrup Rack", "Step 3", "Add a flavor")
+            syrup_default = shame_defaults.get("syrup", "None")
+            syrup = st.radio(
+                "syrup",
+                FLAVOR_SYRUPS,
+                index=FLAVOR_SYRUPS.index(syrup_default),
+                format_func=lambda s: f"{SYRUP_EMOJIS[s]}  {s}",
+                label_visibility="collapsed",
+                key=f"c_syrup_{v}",
             )
-            pump_zone = (
-                "Valid (0-6)" if syrup_pumps <= 6
-                else "Warning (7-10)" if syrup_pumps <= 10
-                else "Invalid (>10)"
-            )
-            st.caption(f"Pump zone: {pump_zone}")
-        else:
-            syrup_pumps = 0
-        if syrup == "Lemon/Citrus":
-            st.caption("Acidic syrup — dangerous with milk!")
-        if qa_mode and syrup != "None":
-            st.caption("🔬 BV: syrup_pumps boundaries at 6|7 and 10|11")
+            if syrup != "None":
+                pumps_default = shame_defaults.get("syrup_pumps", 3)
+                syrup_pumps = st.slider(
+                    "Pumps", 0, 15,
+                    value=int(pumps_default),
+                    help="0-6 = Valid | 7-10 = Warning | >10 = Invalid",
+                    key=f"c_pumps_{v}",
+                )
+                pump_zone = (
+                    "Valid (0-6)" if syrup_pumps <= 6
+                    else "Warning (7-10)" if syrup_pumps <= 10
+                    else "Invalid (>10)"
+                )
+                st.caption(f"Pump zone: {pump_zone}")
+            else:
+                syrup_pumps = 0
+            if syrup == "Lemon/Citrus":
+                st.caption("Acidic syrup — dangerous with milk!")
+            if qa_mode and syrup != "None":
+                st.caption("🔬 BV: syrup_pumps boundaries at 6|7 and 10|11")
 
     with s4:
-        station_header("🧁", "Topping Bar", "Step 4", "Finish it off")
-        topping_default = shame_defaults.get("topping", "None")
-        topping = st.radio(
-            "topping",
-            TOPPINGS,
-            index=TOPPINGS.index(topping_default),
-            format_func=lambda t: f"{TOPPING_EMOJIS[t]}  {t}",
-            label_visibility="collapsed",
-            key=f"c_topping_{v}",
-        )
-        if topping == "Foam":
-            st.caption("Foam collapses on iced drinks (<50°F)")
-        if qa_mode:
-            st.caption("🔬 DT: Foam+Iced triggers Rule R5b")
+        with st.container(border=True):
+            station_header("🧁", "Topping Bar", "Step 4", "Finish it off")
+            topping_default = shame_defaults.get("topping", "None")
+            topping = st.radio(
+                "topping",
+                TOPPINGS,
+                index=TOPPINGS.index(topping_default),
+                format_func=lambda t: f"{TOPPING_EMOJIS[t]}  {t}",
+                label_visibility="collapsed",
+                key=f"c_topping_{v}",
+            )
+            if topping == "Foam":
+                st.caption("Foam collapses on iced drinks (<50°F)")
+            if qa_mode:
+                st.caption("🔬 DT: Foam+Iced triggers Rule R5b")
 
     with s5:
-        station_header("⚙️", "Controls", "Step 5", "Dial in your specs")
-        temp_default = shame_defaults.get("temperature", 155)
-        temperature = st.slider(
-            "Temperature (°F)", 32, 212, int(temp_default),
-            help="Iced ~35 | Warm ~120 | Hot ~155-170 | Danger >180 for plant milks",
-            key=f"c_temp_{v}",
-        )
-        shots_default = shame_defaults.get("shots", 2)
-        shots = st.slider(
-            "Espresso Shots", 1, 6, int(shots_default),
-            help="Each shot = 75mg caffeine | Warning >400mg | Invalid >600mg",
-            key=f"c_shots_{v}",
-        )
-        caffeine = shots * CAFFEINE_PER_SHOT
-        caf_label = (
-            "Safe" if caffeine <= 400
-            else "High" if caffeine <= 600
-            else "Danger"
-        )
-        st.metric("Caffeine", f"{caffeine}mg", delta=caf_label, delta_color=(
-            "normal" if caffeine <= 400 else "inverse"
-        ))
-        if qa_mode:
-            st.caption("🔬 BV: caffeine boundaries at 400|401 and 600|601 mg")
+        with st.container(border=True):
+            station_header("⚙️", "Controls", "Step 5", "Dial in your specs")
+            temp_default = shame_defaults.get("temperature", 155)
+            temperature = st.slider(
+                "Temperature (°F)", 32, 212, int(temp_default),
+                help="Iced ~35 | Warm ~120 | Hot ~155-170 | Danger >180 for plant milks",
+                key=f"c_temp_{v}",
+            )
+            shots_default = shame_defaults.get("shots", 2)
+            shots = st.slider(
+                "Espresso Shots", 1, 6, int(shots_default),
+                help="Each shot = 75mg caffeine | Warning >400mg | Invalid >600mg",
+                key=f"c_shots_{v}",
+            )
+            caffeine = shots * CAFFEINE_PER_SHOT
+            caf_label = (
+                "Safe" if caffeine <= 400
+                else "High" if caffeine <= 600
+                else "Danger"
+            )
+            st.metric("Caffeine", f"{caffeine}mg", delta=caf_label, delta_color=(
+                "normal" if caffeine <= 400 else "inverse"
+            ))
+            if qa_mode:
+                st.caption("🔬 BV: caffeine boundaries at 400|401 and 600|601 mg")
 
     # Clear shame pre-fill after rendering
     if st.session_state.shame_loaded:
         st.session_state.shame_loaded = None
 
     st.divider()
+
+    # ── State Machine View ────────────────────────────────────────────────────
+    with st.expander("🔀 State Machine View — Order Compatibility Tracker"):
+        st.markdown(
+            "State transition testing models a system as a series of **states** connected by "
+            "**transitions**. A transition is invalid when combining two individually-valid states "
+            "creates a conflict. The nodes below show your current order as a state machine path — "
+            "red means an INVALID transition was detected, amber means a WARNING transition."
+        )
+
+        _sm_sub, _sm_inv, _sm_warn = _sm_substates(
+            drink_base, milk_type, syrup, syrup_pumps, topping, temperature, shots
+        )
+
+        # Determine which station keys are touched by detected conflicts
+        _inv_stations  = set()
+        _warn_stations = set()
+        for _t in _sm_inv:
+            _inv_stations.update(_ST_RULE_STATIONS.get(_t["rule"], set()))
+        for _t in _sm_warn:
+            _warn_stations.update(_ST_RULE_STATIONS.get(_t["rule"], set()))
+
+        _sm_node_defs = [
+            ("🔩", "Espresso\nMachine", "drink"),
+            ("🥛", "Milk\nStation",     "milk"),
+            ("🍯", "Syrup\nRack",       "syrup"),
+            ("🧁", "Topping\nBar",      "topping"),
+            ("⚙️",  "Controls",         "specs"),
+        ]
+
+        _sm_cols = st.columns(6)
+        for _ci, (_icon, _name, _key) in enumerate(_sm_node_defs):
+            _, _lbl, _val = _sm_sub[_key]
+            _body = f"**{_icon} {_name}**\n\n`{_val}`\n\n*{_lbl}*"
+            with _sm_cols[_ci]:
+                if _key in _inv_stations:
+                    st.error(_body)
+                elif _key in _warn_stations:
+                    st.warning(_body)
+                else:
+                    st.success(_body)
+
+        with _sm_cols[5]:
+            if _sm_inv:
+                st.error("**⛔ OUTCOME**\n\n`INVALID`\n\n*Conflict detected*")
+            elif _sm_warn:
+                st.warning("**⚠️ OUTCOME**\n\n`WARNING`\n\n*Tension detected*")
+            else:
+                st.success("**✅ OUTCOME**\n\n`VALID`\n\n*All compatible*")
+
+        st.markdown("")
+
+        if _sm_inv or _sm_warn:
+            st.markdown("#### Detected Transition Issues")
+            for _t in _sm_inv:
+                st.error(
+                    f"**❌ `{_t['transition']}`** — Rule {_t['rule']}\n\n"
+                    f"*Stations: {_t['stations']}*\n\n"
+                    f"{_t['desc']}\n\n"
+                    f"🧪 {_t['st_case']}"
+                )
+            for _t in _sm_warn:
+                st.warning(
+                    f"**⚠️ `{_t['transition']}`** — Rule {_t['rule']}\n\n"
+                    f"*Stations: {_t['stations']}*\n\n"
+                    f"{_t['desc']}\n\n"
+                    f"🧪 {_t['st_case']}"
+                )
+        else:
+            st.success("✅ All state transitions are compatible — no conflicts in the current order.")
+
+        with st.expander("💡 About State Transition Testing"):
+            st.markdown("""
+            **State Transition Testing** models a system as a finite state machine:
+
+            - **States** represent the system's current condition (e.g. `PLANT_MILK_SET`, `ACID_SYRUP_ADDED`)
+            - **Transitions** are inputs that move the system from one state to another
+            - **Invalid transitions** occur when a valid state + a valid input creates an incompatible combined state
+            - **Sneak paths** are transitions that should be blocked but pass through unchecked
+
+            A key insight: each ingredient selection may be *individually valid*, but **combining two valid
+            states can produce an invalid result**. This is distinct from boundary value analysis
+            (single-parameter edges) and equivalence class testing (single-parameter partitions).
+            State transition testing asks: *"What happens when this state meets that state?"*
+
+            A complete state transition test suite covers:
+            - Every valid transition (happy path through all stations)
+            - Every invalid transition (the conflicts shown above)
+            - Every state reachable from all possible transition sequences (state coverage)
+            """)
 
     # ── Order button + re-open last results ───────────────────────────────────
     btn_col, view_col = st.columns([3, 1])
@@ -584,17 +699,15 @@ with tab_btb:
         left, right = st.columns([1, 1])
 
         with left:
-            st.markdown(f"""
-            <div class="btb-order-card">
-            <div class="btb-title">📋 CUSTOMER ORDER TICKET</div>
-            <b>Drink:</b>   {DRINK_EMOJIS[o.drink_base]} {o.drink_base}<br>
-            <b>Milk:</b>    {MILK_EMOJIS[o.milk_type]} {o.milk_type}<br>
-            <b>Syrup:</b>   {SYRUP_EMOJIS[o.syrup]} {o.syrup}{pumps_str}<br>
-            <b>Topping:</b> {TOPPING_EMOJIS[o.topping]} {o.topping}<br>
-            <b>Temp:</b>    {o.temperature}°F<br>
-            <b>Shots:</b>   {o.shots} &nbsp;({o.caffeine_mg}mg caffeine)<br>
-            </div>
-            """, unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown("**📋 CUSTOMER ORDER TICKET**")
+                st.divider()
+                st.markdown(f"**Drink:** {DRINK_EMOJIS[o.drink_base]} {o.drink_base}")
+                st.markdown(f"**Milk:** {MILK_EMOJIS[o.milk_type]} {o.milk_type}")
+                st.markdown(f"**Syrup:** {SYRUP_EMOJIS[o.syrup]} {o.syrup}{pumps_str}")
+                st.markdown(f"**Topping:** {TOPPING_EMOJIS[o.topping]} {o.topping}")
+                st.markdown(f"**Temp:** {o.temperature}°F")
+                st.markdown(f"**Shots:** {o.shots} ({o.caffeine_mg}mg caffeine)")
 
         with right:
             if not st.session_state.btb_revealed:
@@ -655,32 +768,28 @@ with tab_shame:
 
         sh_left, sh_right = st.columns([3, 2])
         with sh_left:
-            st.markdown(f"""
-            <div class="shame-card">
-            <div class="shame-name">{entry['name']}</div>
-            <div class="shame-sub">{entry['subtitle']}</div>
-            <div class="shame-story">{entry['story']}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown(f"#### {entry['name']}")
+                st.caption(entry['subtitle'])
+                st.markdown(entry['story'])
 
         with sh_right:
-            # Mini order summary + results
             pumps_str = f" ×{o.syrup_pumps}" if o.syrup != "None" else ""
-            st.markdown(f"""
-            <div class="order-ticket" style="font-size:0.8em">
-            <b>{DRINK_EMOJIS[o.drink_base]} {o.drink_base}</b><br>
-            {MILK_EMOJIS[o.milk_type]} {o.milk_type} &nbsp;|&nbsp; {SYRUP_EMOJIS[o.syrup]} {o.syrup}{pumps_str}<br>
-            {TOPPING_EMOJIS[o.topping]} {o.topping} &nbsp;|&nbsp; {o.temperature}°F &nbsp;|&nbsp; {o.shots} shot(s)<br>
-            <b>Status: {severity_icon(sev)} {sev.value.upper()}</b>
-            </div>
-            """, unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown(f"**{DRINK_EMOJIS[o.drink_base]} {o.drink_base}**")
+                st.caption(
+                    f"{MILK_EMOJIS[o.milk_type]} {o.milk_type} | "
+                    f"{SYRUP_EMOJIS[o.syrup]} {o.syrup}{pumps_str}"
+                )
+                st.caption(
+                    f"{TOPPING_EMOJIS[o.topping]} {o.topping} | "
+                    f"{o.temperature}°F | {o.shots} shot(s)"
+                )
+                st.markdown(f"**Status: {severity_icon(sev)} {sev.value.upper()}**")
             st.markdown("")
             for r in results:
                 if qa_mode:
-                    st.markdown(
-                        f'<span class="qa-pill">{r.test_type.value}</span> <b>{r.title}</b>',
-                        unsafe_allow_html=True,
-                    )
+                    st.markdown(f"`{r.test_type.value}` **{r.title}**")
                 else:
                     icon = "❌" if r.severity == Severity.INVALID else "⚠️"
                     st.markdown(f"{icon} **{r.title}**")
@@ -689,6 +798,21 @@ with tab_shame:
             if st.button(f"Load to Counter ↗", key=f"load_{entry['name']}"):
                 st.session_state.shame_loaded = entry["order"]
                 st.switch_page  # not available in all versions — use workaround below
+
+            # State transition annotation
+            _, _hs_inv, _hs_warn = _sm_substates(
+                o.drink_base, o.milk_type, o.syrup, o.syrup_pumps,
+                o.topping, o.temperature, o.shots,
+            )
+            if _hs_inv or _hs_warn:
+                _hs_key = (_hs_inv + _hs_warn)[0]
+                _hs_icon = "❌" if _hs_inv else "⚠️"
+                st.markdown("---")
+                st.markdown("**🔀 State Transition Catch:**")
+                st.caption(
+                    f"{_hs_icon} `{_hs_key['transition']}` — Rule {_hs_key['rule']}"
+                )
+                st.caption(f"🧪 {_hs_key['st_case']}")
 
         st.divider()
 
@@ -738,24 +862,108 @@ with tab_ec:
         cols = st.columns(len(classes))
         for i, (range_label, class_name, zone, predicate) in enumerate(classes):
             active = order and predicate(order)
-            zone_class = {"VALID": "ec-valid", "WARNING": "ec-warning", "INVALID": "ec-invalid"}[zone]
-            highlight = "border: 2px solid #f5c842;" if active else ""
-            current_label = "<br><b style=\"color:#f5c842\">&larr; current</b>" if active else ""
             with cols[i]:
-                st.markdown(
-                    f'<div style="background:#2a1406; border-radius:10px; padding:12px; '
-                    f'text-align:center; {highlight}">'
-                    f'<span class="{zone_class}">{zone}</span><br>'
-                    f'<b style="color:#e0c0a0">{class_name}</b><br>'
-                    f'<span style="color:#b89070; font-size:0.82em">{range_label}</span>'
-                    f'{current_label}'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
+                current_note = "\n\n**← current**" if active else ""
+                content = f"**{class_name}**\n\n{range_label}{current_note}"
+                if zone == "VALID":
+                    st.success(content)
+                elif zone == "WARNING":
+                    st.warning(content)
+                else:
+                    st.error(content)
         st.markdown("")
 
     if not order:
         st.info("💡 Place an order on the **Barista Counter** tab to highlight your current equivalence classes.")
+
+    # ── Data Flow: Def-Use Paths ───────────────────────────────────────────────
+    st.divider()
+    st.markdown("### 📡 Data Flow: Def-Use Paths")
+    st.markdown(
+        "Data flow testing tracks each variable from its **definition** (where it is assigned) "
+        "to every **use** (each rule or calculation that reads it). "
+        "A **def-use pair (DU-pair)** is one such path. "
+        "The *All-Uses* criterion requires every DU-pair to be exercised — "
+        "every variable must reach every downstream rule at least once across the test suite."
+    )
+
+    _DF_VARS = [
+        # (variable, station#, station name, use type, downstream rule IDs)
+        ("drink_base",  "1", "Espresso Machine", "p-use",          ["R5a", "R6a", "R6b", "R6c"]),
+        ("milk_type",   "2", "Milk Station",     "p-use",          ["R1",  "R2",  "R6a", "R6c"]),
+        ("syrup",       "3", "Syrup Rack",       "p-use",          ["R1",  "R3a", "R3b"]),
+        ("syrup_pumps", "3", "Pump Slider",      "p-use",          ["R3a", "R3b"]),
+        ("topping",     "4", "Topping Bar",      "p-use",          ["R5b"]),
+        ("temperature", "5", "Temp Slider",      "p-use",          ["R2",  "R5a", "R5b"]),
+        ("shots",       "5", "Shots → caffeine", "c-use + p-use",  ["R4a", "R4b", "R6b"]),
+    ]
+
+    _df_covered    = st.session_state.cf_covered_rules
+    _df_table_rows = []
+    for _v, _stn, _stn_name, _use_type, _rules in _DF_VARS:
+        _cov  = [r for r in _rules if r in _df_covered]
+        _n, _c = len(_rules), len(_cov)
+        _pct  = int(_c / _n * 100)
+        _df_table_rows.append({
+            "Variable":      _v,
+            "DEF — Station": f"Stn {_stn} ({_stn_name})",
+            "USE → Rules":   ", ".join(_rules),
+            "Use Type":      _use_type,
+            "DU-Pairs":      _n,
+            "Covered":       _c,
+            "Coverage":      f"{_pct}%",
+        })
+
+    def _style_du(row):
+        pct = int(row["Coverage"].replace("%", ""))
+        if pct == 100:
+            return ["background-color:#d1e7dd"] * len(row)
+        if pct > 0:
+            return ["background-color:#fff3cd"] * len(row)
+        return ["background-color:#f8d7da"] * len(row)
+
+    st.dataframe(
+        pd.DataFrame(_df_table_rows).style.apply(_style_du, axis=1),
+        use_container_width=True,
+        hide_index=True,
+        height=280,
+    )
+
+    _total_du   = sum(len(r[-1]) for r in _DF_VARS)
+    _covered_du = sum(1 for r in _DF_VARS for rule in r[-1] if rule in _df_covered)
+    _du_pct     = int(_covered_du / _total_du * 100) if _total_du else 0
+
+    st.progress(
+        _du_pct / 100,
+        text=f"All-Uses DU-Pair Coverage: {_covered_du}/{_total_du} pairs exercised ({_du_pct}%)",
+    )
+
+    if not st.session_state.order_log:
+        st.info("💡 Place orders on the Barista Counter to start tracking DU-pair coverage.")
+
+    with st.expander("💡 About Data Flow Testing"):
+        st.markdown("""
+        **Data flow testing** maps every variable through its full lifecycle:
+
+        - **DEF** — where the variable is assigned (e.g., `milk_type` is defined when the Milk Station widget is set)
+        - **USE** — where the value is read: a **p-use** is in a predicate (`if milk_type in PLANT_MILKS`)
+          and a **c-use** is in a calculation (`caffeine_mg = shots × 75`)
+        - **DU-pair** — one specific path from a single DEF to a single USE
+
+        **Coverage criteria (weakest → strongest):**
+        - *All-Defs* — every variable reaches at least one use (trivially met after one order)
+        - *All-Uses* — every variable reaches every downstream use (tracked above)
+        - *All-DU-Paths* — every path from each DEF to each USE (often exponential; impractical)
+
+        The table tracks the **All-Uses** criterion. `milk_type` has four downstream rules
+        (R1, R2, R6a, R6c). Achieving 100% DU-pair coverage for `milk_type` requires orders
+        that exercise all four rules — which means testing multiple distinct values of `milk_type`,
+        not just one representative per session.
+
+        This is what separates data flow from equivalence class testing: EC picks one value
+        per partition; data flow testing asks whether every **downstream rule** that reads the
+        variable has been exercised, regardless of which specific value triggered it.
+        """)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -774,34 +982,24 @@ with tab_bv:
     def bv_gauge(label, value, boundaries, zones, unit=""):
         """Render a boundary value zone diagram."""
         st.markdown(f"**{label}** — Current value: `{value}{unit}`")
-        zone_colors = {"VALID": "#134e13", "WARNING": "#4e3a00", "INVALID": "#4e0d0d"}
-        zone_text   = {"VALID": "#7eff7e", "WARNING": "#ffe066", "INVALID": "#ff6b6b"}
-
-        html = '<div style="display:flex; gap:4px; margin:8px 0 4px 0;">'
-        for (lo, hi, zone, zlabel) in zones:
+        zone_cols = st.columns(len(zones))
+        for i, (lo, hi, zone, zlabel) in enumerate(zones):
             active = lo <= value <= hi
-            border = "border: 3px solid #f5c842;" if active else "border: 1px solid #444;"
-            html += (
-                f'<div style="flex:1; background:{zone_colors[zone]}; {border} '
-                f'border-radius:8px; padding:8px 4px; text-align:center;">'
-                f'<span style="color:{zone_text[zone]}; font-weight:700; font-size:0.85em">{zone}</span><br>'
-                f'<span style="color:#ccc; font-size:0.75em">{lo}–{hi}{unit}</span><br>'
-                f'<span style="color:#b89070; font-size:0.72em">{zlabel}</span>'
-            )
-            here_label = "<br><b style=\"color:#f5c842; font-size:0.8em\">&#9650; HERE</b>" if active else ""
-            html += (
-                f'{here_label}'
-                f'</div>'
-            )
-        html += "</div>"
+            with zone_cols[i]:
+                here = "\n\n**▲ HERE**" if active else ""
+                content = f"**{zone}**\n\n`{lo}–{hi}{unit}`\n\n{zlabel}{here}"
+                if zone == "VALID":
+                    st.success(content)
+                elif zone == "WARNING":
+                    st.warning(content)
+                else:
+                    st.error(content)
 
-        # Boundary markers
-        bv_html = "<div style='display:flex; gap:4px; font-size:0.75em; color:#b89070; margin-bottom:14px;'>"
-        for b_val, b_label in boundaries:
-            bv_html += f'<span style="flex:1; text-align:center">⬆ <b>{b_val}{unit}</b><br>{b_label}</span>'
-        bv_html += "</div>"
-
-        st.markdown(html + bv_html, unsafe_allow_html=True)
+        bv_cols = st.columns(len(boundaries))
+        for i, (b_val, b_label) in enumerate(boundaries):
+            with bv_cols[i]:
+                st.caption(f"⬆ **{b_val}{unit}** | {b_label}")
+        st.markdown("")
 
     val_pumps = order.syrup_pumps if order else 3
     val_temp  = order.temperature if order else 155
@@ -869,7 +1067,7 @@ with tab_dt:
 
     def highlight_fired(row):
         if row["Fired?"] == "🔥 YES":
-            return ["background-color: #3d2e00; color: #ffe066; font-weight: bold"] * len(row)
+            return ["background-color: #fff3cd; color: #664d03; font-weight: bold"] * len(row)
         return [""] * len(row)
 
     st.dataframe(
@@ -884,8 +1082,6 @@ with tab_dt:
 
     with st.expander("📖 How to read a Decision Table"):
         st.markdown("""
-        <div style="color:#f5f0e8;">
-
         - **Each row = one rule.** All conditions in a row must be true for the action to fire.
         - **Conditions** are the input factors (milk type, syrup, temperature, etc.)
         - **Actions** are the outcomes — VALID, WARNING, or INVALID.
@@ -894,9 +1090,101 @@ with tab_dt:
 
         The Decision Table is one of the most powerful tools for specifying complex business logic
         because it makes every combination explicit. Missing rows = untested scenarios.
+        """)
 
-        </div>
-        """, unsafe_allow_html=True)
+    # ── Control Flow: Branch Coverage ─────────────────────────────────────────
+    st.divider()
+    st.markdown("### 🔀 Control Flow: Branch Coverage")
+    st.markdown(
+        "Control flow testing asks whether your test suite has traversed **every decision branch** "
+        "in the code. Each business rule is a branch — full branch coverage requires triggering "
+        "every rule at least once across your orders. The table below tracks your **session-wide** "
+        "coverage, accumulating across all orders placed on any tab."
+    )
+
+    _cf_all_ids   = [row["Rule"] for row in DECISION_TABLE]
+    _cf_covered   = st.session_state.cf_covered_rules
+    _cf_num       = len(set(_cf_all_ids).intersection(_cf_covered))
+    _cf_total     = len(_cf_all_ids)
+    _cf_pct       = int(_cf_num / _cf_total * 100) if _cf_total else 0
+
+    st.progress(
+        _cf_pct / 100,
+        text=f"Session Branch Coverage: {_cf_num} / {_cf_total} branches triggered ({_cf_pct}%)",
+    )
+
+    if _cf_pct == 100:
+        st.success("🏆 100% Branch Coverage achieved! Every rule has been triggered at least once.")
+    elif not st.session_state.order_log:
+        st.info("💡 Place orders on the Barista Counter or Break the Barista to start accumulating branch coverage.")
+
+    # Determine unreachable branches dynamically from UI slider ceiling
+    _MAX_SHOTS_CAFFEINE = 6 * CAFFEINE_PER_SHOT  # slider max is 6 shots
+    _unreachable = set()
+    if _MAX_SHOTS_CAFFEINE <= 600:
+        _unreachable.add("R4b")   # >600mg threshold is above the UI ceiling
+
+    _branch_hints = {
+        "R1":  "Lemon/Citrus syrup + any milk",
+        "R2":  "Oat / Almond / Soy / Coconut milk + temperature > 180°F",
+        "R3a": "Any syrup + 7–10 pumps",
+        "R3b": "Any syrup + 11–15 pumps",
+        "R4a": "6 shots → 450mg (sits in the 401–600mg warning zone)",
+        "R4b": f"UI ceiling is {_MAX_SHOTS_CAFFEINE}mg — never reaches the 601mg threshold",
+        "R5a": "Affogato + temperature > 140°F",
+        "R5b": "Foam topping + temperature < 50°F",
+        "R6a": "Latte / Cappuccino / Mocha / Macchiato / Flat White + milk = None",
+        "R6b": "Flat White + 1 shot",
+        "R6c": "Espresso or Americano + any milk",
+    }
+
+    branch_rows = []
+    for _cf_row in DECISION_TABLE:
+        _rid  = _cf_row["Rule"]
+        _hit  = _rid in _cf_covered
+        _dead = _rid in _unreachable
+        if _dead:
+            status = "🚫 Unreachable"
+            hint   = f"Unreachable — {_branch_hints.get(_rid, '—')}"
+        elif _hit:
+            status = "✅ Covered"
+            hint   = "Covered"
+        else:
+            status = "❌ Not Hit"
+            hint   = f"Try: {_branch_hints.get(_rid, '—')}"
+        branch_rows.append({
+            "Hit":                    status,
+            "Rule":                   _rid,
+            "Condition A":            _cf_row["Condition A"],
+            "Condition B":            _cf_row["Condition B"],
+            "How to trigger / Status": hint,
+        })
+
+    st.dataframe(
+        pd.DataFrame(branch_rows),
+        use_container_width=True,
+        hide_index=True,
+        height=400,
+    )
+
+    with st.expander("💡 About Control Flow Testing"):
+        st.markdown("""
+        **Control flow testing** analyzes the logical paths through source code:
+
+        - **Branch coverage** — every decision point has been taken both TRUE (fires) and FALSE
+          (passes through) at least once across the test suite
+        - **Statement coverage** — every line of code has been executed
+        - **Path coverage** — every unique end-to-end path tested (often exponential; impractical)
+
+        In this rule engine, each check function is a decision point. Branch coverage asks:
+        *"Have I given the system an order that fires this rule, and an order that doesn't?"*
+
+        The 🚫 **Unreachable Branch** (R4b) is a real structural finding — the UI caps shots at 6
+        (max 450mg), so the >600mg INVALID threshold can never be reached from the counter.
+        A control flow analysis exposed a gap between the specification (the rule exists) and the
+        implementation (the UI never exercises it). This is precisely the kind of dead code or
+        configuration mismatch that structural testing is designed to uncover.
+        """)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -947,6 +1235,89 @@ with tab_pw:
         """.format(bf))
 
     st.divider()
+    st.markdown("### 🔽 From 85 Million to 99 — The Reduction Story")
+    st.markdown(
+        "Three techniques stack to make the test suite feasible. "
+        "Each stage eliminates redundancy while preserving full bug-detection power."
+    )
+
+    _raw_counts = {
+        "Drink Base":   8,
+        "Milk Type":    8,
+        "Flavor Syrup": 11,
+        "Topping":      7,
+        "Syrup Pumps":  16,
+        "Temperature":  181,
+        "Shots":        6,
+    }
+    _ec_counts = {
+        "Drink Base":   8,
+        "Milk Type":    8,
+        "Flavor Syrup": 11,
+        "Topping":      7,
+        "Syrup Pumps":  7,
+        "Temperature":  6,
+        "Shots":        5,
+    }
+    _raw_total = 1
+    for v in _raw_counts.values():
+        _raw_total *= v
+
+    _total_pairs = sum(
+        len(a) * len(b)
+        for a, b in itertools.combinations(PAIRWISE_PARAMETERS.values(), 2)
+    )
+
+    _f1, _f2, _f3 = st.columns(3)
+    with _f1:
+        with st.container(border=True):
+            st.markdown("#### ① Raw Input Space")
+            st.metric("Combinations", f"{_raw_total:,}")
+            st.caption(
+                "Full cartesian product of every integer value across all parameter ranges. "
+                "Temperature alone spans 181 values (32–212°F); pumps span 16 (0–15)."
+            )
+    with _f2:
+        with st.container(border=True):
+            st.markdown("#### ② Equivalence Class Partitioning")
+            st.metric("Combinations", f"{bf:,}", delta=f"-{_raw_total - bf:,}", delta_color="inverse")
+            st.caption(
+                "Numeric parameters collapsed to boundary-representative values. "
+                "181 temperatures → 6 reps; 16 pump values → 7 reps."
+            )
+    with _f3:
+        with st.container(border=True):
+            st.markdown("#### ③ Pairwise Selection")
+            st.metric("Test Cases", str(pw), delta=f"-{bf - pw:,}", delta_color="inverse")
+            st.caption(
+                f"Minimum set covering all {_total_pairs:,} unique 2-way parameter-value pairs "
+                f"across the 7 parameters."
+            )
+
+    with st.expander("📐 Per-parameter breakdown"):
+        _ec_reps_desc = {
+            "Drink Base":   "All 8 drinks (discrete, no reduction)",
+            "Milk Type":    "All 8 milks (discrete, no reduction)",
+            "Flavor Syrup": "All 11 syrups (discrete, no reduction)",
+            "Topping":      "All 7 toppings (discrete, no reduction)",
+            "Syrup Pumps":  "0, 3, 6, 7, 10, 11, 15 — one per BV zone + boundaries",
+            "Temperature":  "32, 50, 100, 180, 181, 212 — iced / normal / plant-milk boundaries",
+            "Shots":        "1, 2, 3, 5, 6 — min, flat-white min, mid, caffeine zones",
+        }
+        _breakdown_rows = []
+        for _param in _raw_counts:
+            _raw_n = _raw_counts[_param]
+            _ec_n  = _ec_counts[_param]
+            _breakdown_rows.append({
+                "Parameter":          _param,
+                "Raw Values":         _raw_n,
+                "EC Reps":            _ec_n,
+                "Reduction":          f"÷{_raw_n // _ec_n}" if _ec_n < _raw_n else "no change",
+                "EC Representatives": _ec_reps_desc[_param],
+            })
+        st.dataframe(pd.DataFrame(_breakdown_rows), hide_index=True, use_container_width=True)
+
+    st.divider()
 
     if st.button("🎲 Generate Pairwise Test Suite", type="primary"):
         with st.spinner("Generating pairwise covering array..."):
@@ -989,10 +1360,10 @@ with tab_pw:
 
         def color_status(row):
             if "INVALID" in row["Status"]:
-                return ["background-color:#4e0d0d"] * len(row)
+                return ["background-color: #f8d7da"] * len(row)
             if "WARNING" in row["Status"]:
-                return ["background-color:#3d2e00"] * len(row)
-            return [""] * len(row)
+                return ["background-color: #fff3cd"] * len(row)
+            return ["background-color: #d1e7dd"] * len(row)
 
         st.dataframe(
             df_pw.style.apply(color_status, axis=1),
@@ -1009,6 +1380,144 @@ with tab_pw:
             mime="text/csv",
             type="primary",
         )
+
+        # ── Pair coverage matrix ──────────────────────────────────────────────
+        st.divider()
+        st.markdown("#### 🔲 Pair Coverage Matrix")
+        st.markdown(
+            "Each cell shows **covered / possible** unique value-pairs for that parameter combination "
+            "across the generated test suite. Pairwise guarantees every cell reaches 100%."
+        )
+
+        _param_names = ["Drink", "Milk", "Syrup", "Topping", "Pumps", "Temp °F", "Shots"]
+        _param_attrs = ["drink_base", "milk_type", "syrup", "topping", "syrup_pumps", "temperature", "shots"]
+        _n = len(_param_names)
+
+        _unique_vals = [set(getattr(c, attr) for c in cases) for attr in _param_attrs]
+
+        _matrix_rows = []
+        for _i in range(_n):
+            _row = {"Parameter": _param_names[_i]}
+            for _j in range(_n):
+                if _i == _j:
+                    _row[_param_names[_j]] = "—"
+                else:
+                    _possible = len(_unique_vals[_i]) * len(_unique_vals[_j])
+                    _covered  = len(set(
+                        (getattr(c, _param_attrs[_i]), getattr(c, _param_attrs[_j]))
+                        for c in cases
+                    ))
+                    _row[_param_names[_j]] = f"{_covered}/{_possible}"
+            _matrix_rows.append(_row)
+
+        df_matrix = pd.DataFrame(_matrix_rows).set_index("Parameter")
+
+        def _style_matrix_row(row):
+            styles = []
+            for val in row:
+                if val == "—":
+                    styles.append("background-color: #e9ecef; color: #6c757d")
+                elif "/" in str(val):
+                    a, b = str(val).split("/")
+                    styles.append("background-color: #d1e7dd" if a == b else "background-color: #fff3cd")
+                else:
+                    styles.append("")
+            return styles
+
+        st.dataframe(
+            df_matrix.style.apply(_style_matrix_row, axis=1),
+            use_container_width=True,
+        )
+
+        # ── Coverage accumulation chart ───────────────────────────────────────
+        st.divider()
+        st.markdown("#### 📈 Pair Coverage Accumulation")
+        st.markdown(
+            "Cumulative unique value-pairs covered as each test case is added in order. "
+            "The steep early slope shows that the first few cases cover the most ground — "
+            "a key property of pairwise algorithms."
+        )
+
+        _covered_set = set()
+        _accum = []
+        for _case in cases:
+            for _i in range(_n):
+                for _j in range(_i + 1, _n):
+                    _covered_set.add((
+                        _param_names[_i], getattr(_case, _param_attrs[_i]),
+                        _param_names[_j], getattr(_case, _param_attrs[_j]),
+                    ))
+            _accum.append(len(_covered_set))
+
+        _total_possible_pairs = sum(
+            len(_unique_vals[_i]) * len(_unique_vals[_j])
+            for _i in range(_n)
+            for _j in range(_i + 1, _n)
+        )
+
+        df_accum = pd.DataFrame({
+            "Test Case #":          list(range(1, len(cases) + 1)),
+            "Pairs Covered":        _accum,
+            "Total Possible Pairs": [_total_possible_pairs] * len(cases),
+        }).set_index("Test Case #")
+
+        st.line_chart(df_accum)
+
+        _cases_for_100 = next(
+            (i + 1 for i, v in enumerate(_accum) if v >= _total_possible_pairs),
+            len(cases),
+        )
+        st.caption(
+            f"100% pair coverage reached after **{_cases_for_100}** of {len(cases)} test cases. "
+            f"The remaining {len(cases) - _cases_for_100} cases provide redundant pair coverage, "
+            "ensuring robustness even if a small subset of tests is skipped."
+        )
+
+        # ── Branch coverage from pairwise suite ───────────────────────────────
+        st.divider()
+        st.markdown("#### 🔀 Branch Coverage from This Pairwise Suite")
+        st.markdown(
+            "Control flow testing asks: does your test suite hit every branch? "
+            "Here's what the generated pairwise cases achieve structurally:"
+        )
+        _pw_rule_ids = [row["Rule"] for row in DECISION_TABLE]
+        _pw_covered  = set()
+        for _, _pw_res in results:
+            for _pw_r in _pw_res:
+                _pw_covered.add(_pw_r.rule_id)
+        _pw_n   = len(set(_pw_rule_ids).intersection(_pw_covered))
+        _pw_pct = int(_pw_n / len(_pw_rule_ids) * 100)
+        _pw_missing = sorted(set(_pw_rule_ids) - _pw_covered)
+
+        pw_bc1, pw_bc2, pw_bc3 = st.columns(3)
+        pw_bc1.metric("Branch Coverage", f"{_pw_n}/{len(_pw_rule_ids)}")
+        pw_bc2.metric("Coverage %", f"{_pw_pct}%")
+        pw_bc3.metric("Uncovered Branches", len(_pw_missing))
+
+        if _pw_missing:
+            st.warning(
+                f"Branches not triggered by the pairwise suite: **{', '.join(_pw_missing)}**. "
+                f"Pairwise optimizes for 2-way interaction coverage, not structural branch coverage. "
+                f"Targeted single-parameter boundary orders are needed to reach those branches."
+            )
+        else:
+            st.success("The pairwise suite achieves 100% branch coverage as a side effect of thorough pair coverage.")
+
+        with st.expander("💡 Pairwise vs. Branch Coverage"):
+            st.markdown("""
+            Pairwise testing targets **interaction coverage** (every pair of values appears at least once),
+            not structural branch coverage. However, because it systematically exercises edge values
+            across all parameter combinations, it frequently achieves high branch coverage as a side effect.
+
+            When pairwise misses branches, it's usually for rules that require a **specific
+            single-parameter extreme** the algorithm didn't happen to select. A small set of
+            hand-picked boundary tests fills those gaps — and now you know exactly which ones
+            to add, thanks to the coverage table above.
+
+            **Key insight:** branch coverage and pairwise coverage are complementary.
+            A robust test suite needs both structural coverage (every branch hit) and
+            interaction coverage (every pair exercised).
+            """)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1027,9 +1536,9 @@ with tab_log:
         def color_log_status(row):
             s = row.get("Status", "")
             if s == "INVALID":
-                return ["background-color:#4e0d0d"] * len(row)
+                return ["background-color: #f8d7da"] * len(row)
             if s == "WARNING":
-                return ["background-color:#3d2e00"] * len(row)
+                return ["background-color: #fff3cd"] * len(row)
             return [""] * len(row)
 
         st.dataframe(
@@ -1057,4 +1566,107 @@ with tab_log:
         with col_clr:
             if st.button("🗑️ Clear Log", use_container_width=True):
                 st.session_state.order_log = []
+                st.session_state.cf_covered_rules = set()
+                st.session_state.df_var_seen = {k: set() for k in st.session_state.df_var_seen}
                 st.rerun()
+
+        # ── Data Flow: Variable Value Coverage ────────────────────────────────
+        with st.expander("📡 Data Flow: Variable Value Coverage"):
+            st.markdown(
+                "Data flow testing asks whether each variable has been tested with **enough variety** "
+                "to reach all its downstream rule uses. The table shows which EC value classes have "
+                "appeared in your logged orders — the **Missing Classes** column identifies data flow gaps."
+            )
+
+            _dv = st.session_state.df_var_seen
+
+            _vc_config = [
+                ("drink_base",  "Stn 1", [
+                    ("Espresso/Americano",   bool(_dv["drink_base"] & {"Espresso", "Americano"}),                         "R6c"),
+                    ("Affogato",             "Affogato" in _dv["drink_base"],                                             "R5a"),
+                    ("Milk-required drinks", bool(_dv["drink_base"] & {"Latte","Cappuccino","Macchiato","Mocha","Flat White"}), "R6a"),
+                    ("Flat White",           "Flat White" in _dv["drink_base"],                                           "R6b"),
+                ]),
+                ("milk_type",   "Stn 2", [
+                    ("No Milk (None)",   "None" in _dv["milk_type"],                                                     "R6a"),
+                    ("Dairy",            bool(_dv["milk_type"] & {"Whole Milk", "Skim Milk", "Half & Half"}),            "R1, R6c"),
+                    ("Plant-based",      bool(_dv["milk_type"] & PLANT_MILKS),                                           "R1, R2, R6c"),
+                ]),
+                ("syrup",       "Stn 3", [
+                    ("None",        "None" in _dv["syrup"],                                  "—"),
+                    ("Acid syrup",  "Lemon/Citrus" in _dv["syrup"],                          "R1"),
+                    ("Safe syrup",  bool(_dv["syrup"] - {"None", "Lemon/Citrus"}),           "R3a, R3b"),
+                ]),
+                ("syrup_pumps", "Stn 3", [
+                    ("0 pumps",       0 in _dv["syrup_pumps"],                               "—"),
+                    ("Valid 1–6",     any(1 <= p <= 6  for p in _dv["syrup_pumps"]),         "—"),
+                    ("Warning 7–10",  any(7 <= p <= 10 for p in _dv["syrup_pumps"]),         "R3a"),
+                    ("Overflow >10",  any(p > 10       for p in _dv["syrup_pumps"]),         "R3b"),
+                ]),
+                ("topping",     "Stn 4", [
+                    ("None",          "None" in _dv["topping"],                              "—"),
+                    ("Standard",      bool(_dv["topping"] - {"None", "Foam"}),               "—"),
+                    ("Foam",          "Foam" in _dv["topping"],                              "R5b"),
+                ]),
+                ("temperature", "Stn 5", [
+                    ("Iced (<50°F)",    any(t < 50        for t in _dv["temperature"]),      "R5b"),
+                    ("Normal (50–180)", any(50 <= t <= 180 for t in _dv["temperature"]),     "—"),
+                    ("Very hot (>180)", any(t > 180        for t in _dv["temperature"]),     "R2"),
+                ]),
+                ("shots",       "Stn 5", [
+                    ("1 shot",    1 in _dv["shots"],                                         "R6b"),
+                    ("2 shots",   2 in _dv["shots"],                                         "—"),
+                    ("3–4 shots", bool(_dv["shots"] & {3, 4}),                               "—"),
+                    ("5–6 shots", bool(_dv["shots"] & {5, 6}),                               "R4a"),
+                ]),
+            ]
+
+            _vc_summary_rows = []
+            for _vname, _stn, _classes in _vc_config:
+                _n_total = len(_classes)
+                _n_seen  = sum(1 for _, seen, _ in _classes if seen)
+                _missing = [lbl for lbl, seen, _ in _classes if not seen]
+                _pct     = int(_n_seen / _n_total * 100)
+                _vc_summary_rows.append({
+                    "Variable":       _vname,
+                    "Station":        _stn,
+                    "Seen / Total":   f"{_n_seen}/{_n_total}",
+                    "Coverage":       f"{_pct}%",
+                    "Missing Classes": ", ".join(_missing) if _missing else "—",
+                })
+
+            def _style_vc(row):
+                pct = int(row["Coverage"].replace("%", ""))
+                if pct == 100:
+                    return ["background-color:#d1e7dd"] * len(row)
+                if pct > 0:
+                    return ["background-color:#fff3cd"] * len(row)
+                return ["background-color:#f8d7da"] * len(row)
+
+            st.dataframe(
+                pd.DataFrame(_vc_summary_rows).style.apply(_style_vc, axis=1),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+            _vc_total   = sum(len(c) for _, _, c in _vc_config)
+            _vc_covered = sum(1 for _, _, cls in _vc_config for _, seen, _ in cls if seen)
+            _vc_pct     = int(_vc_covered / _vc_total * 100)
+            st.progress(
+                _vc_pct / 100,
+                text=f"Variable Value Class Coverage: {_vc_covered}/{_vc_total} classes tested ({_vc_pct}%)",
+            )
+
+            with st.expander("💡 How this differs from branch coverage"):
+                st.markdown("""
+                The **branch coverage** view (Decision Table tab) asks: *which rules have fired?*
+
+                This **variable value coverage** view asks: *which values have you used for each variable?*
+
+                They measure different things. You could trigger R1 (acid + milk) once using Lemon/Citrus
+                syrup with Whole Milk — R1 branch covered — but never test `milk_type = "Oat Milk"` or
+                `milk_type = "None"`, leaving R2 and R6a without any data flowing through them.
+
+                Data flow testing ensures the **variety of values** is sufficient to reach all
+                downstream computations, not just that a branch exists and fires once.
+                """)

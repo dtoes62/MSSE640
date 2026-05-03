@@ -106,7 +106,7 @@ def check_syrup_pump_boundary(order: Order) -> Optional[RuleResult]:
         return None
     if order.syrup_pumps > 10:
         return RuleResult(
-            rule_id="R3",
+            rule_id="R3b",
             title="Syrup Overflow — Too Many Pumps",
             description=(
                 f"{order.syrup_pumps} pumps is past the invalid boundary. "
@@ -122,7 +122,7 @@ def check_syrup_pump_boundary(order: Order) -> Optional[RuleResult]:
         )
     if order.syrup_pumps > 6:
         return RuleResult(
-            rule_id="R3",
+            rule_id="R3a",
             title="Syrup Warning — Sweet Zone",
             description=(
                 f"{order.syrup_pumps} pumps of {order.syrup} is in the warning zone. "
@@ -144,7 +144,7 @@ def check_caffeine_boundary(order: Order) -> Optional[RuleResult]:
     mg = order.caffeine_mg
     if mg > 600:
         return RuleResult(
-            rule_id="R4",
+            rule_id="R4b",
             title="Caffeine Critical — Danger Zone",
             description=(
                 f"{mg}mg caffeine exceeds the 600mg invalid boundary. "
@@ -160,7 +160,7 @@ def check_caffeine_boundary(order: Order) -> Optional[RuleResult]:
         )
     if mg > 400:
         return RuleResult(
-            rule_id="R4",
+            rule_id="R4a",
             title="Caffeine Warning — High Intake",
             description=(
                 f"{mg}mg caffeine is in the warning zone. "
